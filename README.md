@@ -1,1 +1,5 @@
-# WH24P-esphome
+# misol-esphome
+
+esphome component for misol weather stations
+
+Work in progress...
