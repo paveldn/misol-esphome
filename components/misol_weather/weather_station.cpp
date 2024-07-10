@@ -17,9 +17,6 @@ std::string angleToDirection(double angle) {
     return directions[index % 16];
 }
 
-void WeatherStation::update() {
-}
-
 void WeatherStation::loop() {
   auto size = this->available();
   if (size > 0) {

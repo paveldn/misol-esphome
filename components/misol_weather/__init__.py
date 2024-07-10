@@ -9,9 +9,10 @@ from esphome.const import (
     CONF_UART_ID,
 )
 
-
 CODEOWNERS = ["@paveldn"]
-DEPENDENCIES = ["uart"]
+DEPENDENCIES = ["misol_weather"]
+
+CONF_MISOL_ID = "misol_id"
 
 misol_ns = cg.esphome_ns.namespace("misol")
 WeatherStation = misol_ns.class_(
@@ -24,7 +25,6 @@ CONFIG_SCHEMA = (
             cv.GenerateID(): cv.declare_id(WeatherStation),
         }
     )
-    .extend(cv.polling_component_schema("16s"))
     .extend(uart.UART_DEVICE_SCHEMA)
 )
 
