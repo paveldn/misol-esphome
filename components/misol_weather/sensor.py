@@ -2,26 +2,25 @@ import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome.components import sensor
 from esphome.const import (
-    CONF_TEMPERATURE,
     CONF_HUMIDITY,
-    CONF_PRESSURE,
-    UNIT_CELSIUS,
-    UNIT_PERCENT,
-    UNIT_HECTOPASCAL,
-    DEVICE_CLASS_TEMPERATURE,
-    DEVICE_CLASS_HUMIDITY,
-    DEVICE_CLASS_ATMOSPHERIC_PRESSURE,
-    STATE_CLASS_MEASUREMENT,
-    CONF_WIND_DIRECTION_DEGREES,
-    UNIT_DEGREES,
-    ICON_SIGN_DIRECTION,
-    CONF_WIND_SPEED,
-    DEVICE_CLASS_WIND_SPEED,
-    ICON_WEATHER_WINDY,
-    UNIT_MILLIMETER,
     CONF_LIGHT,
-    UNIT_LUX,
+    CONF_PRESSURE,
+    CONF_TEMPERATURE,
+    CONF_WIND_DIRECTION_DEGREES,
+    CONF_WIND_SPEED,
+    DEVICE_CLASS_ATMOSPHERIC_PRESSURE,
+    DEVICE_CLASS_HUMIDITY,
     DEVICE_CLASS_ILLUMINANCE,
+    DEVICE_CLASS_TEMPERATURE,
+    DEVICE_CLASS_WIND_SPEED,
+    ICON_SIGN_DIRECTION,
+    ICON_WEATHER_WINDY,
+    STATE_CLASS_MEASUREMENT,
+    UNIT_CELSIUS,
+    UNIT_DEGREES,
+    UNIT_HECTOPASCAL,
+    UNIT_LUX,
+    UNIT_PERCENT,
 )
 from . import (
     CONF_MISOL_ID,
@@ -34,13 +33,17 @@ UNIT_METER_PER_SECOND = "m/s"
 CONF_WIND_GUST = "wind_gust"
 CONF_RAINFALL = "rainfall"
 ICON_WEATHER_POURING = "mdi:weather-pouring"
+UNIT_MILLIMETERS = "mm"
 
 TYPES = [ 
     CONF_TEMPERATURE, 
     CONF_HUMIDITY, 
     CONF_PRESSURE, 
     CONF_WIND_SPEED, 
-    CONF_WIND_DIRECTION_DEGREES 
+    CONF_WIND_DIRECTION_DEGREES,
+    CONF_WIND_GUST,
+    CONF_RAINFALL,
+    CONF_LIGHT,
 ]
 
 CONFIG_SCHEMA = cv.All(
@@ -84,7 +87,7 @@ CONFIG_SCHEMA = cv.All(
                 state_class=STATE_CLASS_MEASUREMENT,
             ),
             cv.Optional(CONF_RAINFALL): sensor.sensor_schema(
-                unit_of_measurement=UNIT_MILLIMETER,
+                unit_of_measurement=UNIT_MILLIMETERS,
                 accuracy_decimals=1,
                 icon=ICON_WEATHER_POURING,
                 state_class=STATE_CLASS_MEASUREMENT,

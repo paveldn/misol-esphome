@@ -10,7 +10,7 @@ logger:
   level: DEBUG
 
 uart:
-  rx_pin: GPIO5
+  rx_pin: GPIO3
   baud_rate: 9600
   stop_bits: 1
 

@@ -26,7 +26,7 @@ class WeatherStation : public Component, public uart::UARTDevice {
   SUB_SENSOR(wind_speed)
   SUB_SENSOR(wind_gust)
   SUB_SENSOR(wind_direction_degrees)
-  SUB_SENSOR(rain_fall)
+  SUB_SENSOR(rainfall)
   SUB_SENSOR(uv_value)
   SUB_SENSOR(light)
 #endif
@@ -36,19 +36,9 @@ class WeatherStation : public Component, public uart::UARTDevice {
  public:
   float get_setup_priority() const override { return setup_priority::HARDWARE; }
   void loop() override;
-  PacketType check_packet(const uint8_t *data, size_t len);
  protected:
-  bool new_data_{false};
-  optional<unsigned int> wind_direction_{};
-  optional<bool> low_battery_{};
-  optional<float> temperature_{};
-  optional<unsigned int> humidity_{};
-  optional<float> wind_speed_{};
-  optional<float> wind_gust_{};
-  optional<float> rain_fall_{};
-  optional<int> uv_value_{};
-  optional<float> light_{};
-  optional<float> pressure_{};
+  PacketType check_packet_(const uint8_t *data, size_t len);
+  void process_packet_(const uint8_t *data, size_t len, bool has_pressure);
 };
 
 } // misol
