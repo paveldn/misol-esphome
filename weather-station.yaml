@@ -53,3 +53,17 @@ sensor:
       name: Weather station Light
     uv_intensity:
       name: Weather station Ultraviolet Intensity
+    uv_index:
+      name: Weather station Ultraviolet Index
+
+binary_sensor:
+  - platform: misol_weather
+    battery_level:
+      name: Weather station Battery Level
+
+text_sensor:
+  - platform: misol_weather
+    wind_direction:
+      name: Weather station Wind Direction Text
+    wind_speed:
+      name: Weather station Wind Speed Text

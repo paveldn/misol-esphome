@@ -2,8 +2,39 @@
 #include "esphome/core/helpers.h"
 #include "weather_station.h"
 #include <memory>
+#include <string>
 
 namespace {
+
+std::string wind_speed_to_description(double speed) {
+    if (speed < 0.3) {
+        return "Calm";
+    } else if (speed >= 0.3 && speed <= 1.5) {
+        return "Light air";
+    } else if (speed > 1.5 && speed <= 3.3) {
+        return "Light breeze";
+    } else if (speed > 3.3 && speed <= 5.5) {
+        return "Gentle breeze";
+    } else if (speed > 5.5 && speed <= 7.9) {
+        return "Moderate breeze";
+    } else if (speed > 7.9 && speed <= 10.7) {
+        return "Fresh breeze";
+    } else if (speed > 10.7 && speed <= 13.8) {
+        return "Strong breeze";
+    } else if (speed > 13.8 && speed <= 17.1) {
+        return "High wind";
+    } else if (speed > 17.1 && speed <= 20.7) {
+        return "Gale";
+    } else if (speed > 20.7 && speed <= 24.4) {
+        return "Severe gale";
+    } else if (speed > 24.4 && speed <= 28.4) {
+        return "Storm";
+    } else if (speed > 28.4 && speed <= 32.6) {
+        return "Violent storm";
+    } else {
+        return "Hurricane force";
+    }
+}
 
 std::string angle_to_direction(double angle) {
     const char* directions[] = {
@@ -153,14 +184,20 @@ void WeatherStation::process_packet_(const uint8_t *data, size_t len, bool has_p
     }
   }
 #endif // USE_SENSOR
-//#ifdef USE_BINARY_SENSOR
-//  bool low_battery = data[3] & 0x08 != 0;
-//  if (!this->low_battery_.has_value() || (this->low_battery_.value() != low_battery)) {
-//    this->new_data_ = true;
-//    this->low_battery_ = low_battery;
-//  }
-//  ESP_LOGI(TAG, "  Low battery: %s", low_battery ? "Yes" : "No");
-//#endif // USE_BINARY_SENSOR
+#ifdef USE_TEXT_SENSOR
+  if (this->wind_direction_text_sensor_ != nullptr) {
+    uint16_t wind_direction = data[2] + (((uint16_t)(data[3] & 0x80)) << 1);
+    if (wind_direction != 0x1FF) {
+      this->wind_direction_text_sensor_->publish_state(angle_to_direction(wind_direction));
+    } else {
+      this->wind_direction_text_sensor_->publish_state("Unknown");
+    }
+  }
+#endif // USE_TEXT_SENSOR
+#ifdef USE_BINARY_SENSOR
+  bool low_battery = (data[3] & 0x08) != 0;
+  this->battery_level_binary_sensor_->publish_state(low_battery);
+#endif // USE_BINARY_SENSOR
 #ifdef USE_SENSOR
   if (this->temperature_sensor_ != nullptr) {
     uint16_t temperature = data[4] + (((uint16_t)(data[3] & 0x07)) << 8);
@@ -191,6 +228,16 @@ void WeatherStation::process_packet_(const uint8_t *data, size_t len, bool has_p
     }
   }
 #endif // USE_SENSOR
+#ifdef USE_TEXT_SENSOR
+  if (this->wind_speed_text_sensor_ != nullptr) {
+    uint16_t wind_speed = data[6] + (((uint16_t)(data[3] & 0x10)) << 4);
+    if (wind_speed != 0x1FF) {
+      this->wind_speed_text_sensor_->publish_state(wind_speed_to_description(wind_speed / 8.0 * 1.12));
+    } else {
+      this->wind_speed_text_sensor_->publish_state("Unknown");
+    }
+  }
+#endif // USE_TEXT_SENSOR
 #ifdef USE_SENSOR
   if (this->wind_gust_sensor_ != nullptr) {
     uint8_t wind_gust = data[7];

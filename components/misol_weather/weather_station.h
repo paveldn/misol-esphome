@@ -9,6 +9,9 @@
 #ifdef USE_BINARY_SENSOR
 #include "esphome/components/binary_sensor/binary_sensor.h"
 #endif
+#ifdef USE_TEXT_SENSOR
+#include "esphome/components/text_sensor/text_sensor.h"
+#endif
 
 namespace esphome {
 namespace misol {
@@ -33,7 +36,11 @@ class WeatherStation : public Component, public uart::UARTDevice {
   SUB_SENSOR(light)
 #endif
 #ifdef USE_BINARY_SENSOR
-  SUB_BINARY_SENSOR(low_battery)
+  SUB_BINARY_SENSOR(battery_level)
+#endif
+#ifdef USE_TEXT_SENSOR
+  SUB_TEXT_SENSOR(wind_direction)
+  SUB_TEXT_SENSOR(wind_speed)
 #endif
  public:
   float get_setup_priority() const override { return setup_priority::HARDWARE; }
