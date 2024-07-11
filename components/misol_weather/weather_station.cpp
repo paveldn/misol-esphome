@@ -14,21 +14,61 @@ std::string angle_to_direction(double angle) {
     return directions[index % 16];
 }
 
+uint8_t uv_intensiti_to_uvi(uint16_t uv_intensity) {
+  if (uv_intensity < 432)
+    return 0;
+  if (uv_intensity < 851)
+    return 1;
+  if (uv_intensity < 1210)
+    return 2;
+  if (uv_intensity < 1570)
+    return 3;
+  if (uv_intensity < 2017)
+    return 4;
+  if (uv_intensity < 2450)
+    return 5;
+  if (uv_intensity < 2761)
+    return 6;
+  if (uv_intensity < 3100)  
+    return 7;
+  if (uv_intensity < 3512)
+    return 8;
+  if (uv_intensity < 3918)
+    return 9;
+  if (uv_intensity < 4277)
+    return 10;
+  if (uv_intensity < 4650)
+    return 11;
+  if (uv_intensity < 5029)
+    return 12;
+  return 13;
+}
+
 } // namespace
 
 namespace esphome {
 namespace misol {
 
 static const char *TAG = "misol.weather_station"; 
+constexpr std::chrono::milliseconds COMMUNICATION_TIMOUT = std::chrono::minutes(2);
 
 void WeatherStation::loop() {
+  // Checking timeout
+  std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now();
+  if (this->first_data_received_ && (now - this->last_packet_time_ > COMMUNICATION_TIMOUT)) {
+    ESP_LOGW(TAG, "Communication timeout");
+    this->first_data_received_ = false;
+    this->reset_sub_entities_();
+  }
   auto size = this->available();
   if (size > 0) {
     std::unique_ptr<uint8_t[]> buffer(new uint8_t[size]);
     for (int i = 0; i < size; i++) {
       buffer[i] = this->read();
     }
-    ESP_LOGD(TAG, "Received: %s", format_hex_pretty(buffer.get(), size).c_str());
+    ESP_LOGD(TAG, "%s received: %s", this->first_data_received_ ? "Packet" : "First packet", format_hex_pretty(buffer.get(), size).c_str());
+    this->first_data_received_ = true;
+    this->last_packet_time_ = now;
     PacketType packet_type = check_packet_(buffer.get(), size);
     if (packet_type != PacketType::WRONG_PACKET) {
       this->process_packet_(buffer.get(), size, packet_type == PacketType::BASIC_WITH_PRESSURE);
@@ -37,6 +77,27 @@ void WeatherStation::loop() {
     }
 
   }
+}
+
+void WeatherStation::reset_sub_entities_() {
+  if (this->temperature_sensor_ != nullptr)
+    this->temperature_sensor_->publish_state(NAN);
+  if (this->humidity_sensor_ != nullptr)
+    this->humidity_sensor_->publish_state(NAN);
+  if (this->pressure_sensor_ != nullptr)
+    this->pressure_sensor_->publish_state(NAN);
+  if (this->wind_speed_sensor_ != nullptr)
+    this->wind_speed_sensor_->publish_state(NAN);
+  if (this->wind_gust_sensor_ != nullptr)
+    this->wind_gust_sensor_->publish_state(NAN);
+  if (this->wind_direction_degrees_sensor_ != nullptr)
+    this->wind_direction_degrees_sensor_->publish_state(NAN);
+  if (this->accumulated_precipitation_sensor_ != nullptr)
+    this->accumulated_precipitation_sensor_->publish_state(NAN);
+  if (this->uv_intensity_sensor_ != nullptr)
+    this->uv_intensity_sensor_->publish_state(NAN);
+  if (this->light_sensor_ != nullptr)
+    this->light_sensor_->publish_state(NAN);
 }
 
 PacketType WeatherStation::check_packet_(const uint8_t *data, size_t len) {
@@ -141,18 +202,25 @@ void WeatherStation::process_packet_(const uint8_t *data, size_t len, bool has_p
   }
 #endif // USE_SENSOR
 #ifdef USE_SENSOR
-  if (this->rainfall_sensor_ != nullptr) {
-    uint16_t rainfall = data[9] + (((uint16_t)data[8]) << 8);
-    this->rainfall_sensor_->publish_state(rainfall * 0.3);
+  if (this->accumulated_precipitation_sensor_ != nullptr) {
+    uint16_t accumulated_precipitation = data[9] + (((uint16_t)data[8]) << 8);
+    this->accumulated_precipitation_sensor_->publish_state(accumulated_precipitation * 0.3);
   }
 #endif // USE_SENSOR
 #ifdef USE_SENSOR
-  if (this->uv_value_sensor_ != nullptr) {
-    unsigned int uv_value = data[11] + (((uint16_t)data[10]) << 8);
-    if (uv_value != 0xFFFF) {
-      this->uv_value_sensor_->publish_state(uv_value);
+  unsigned int uv_intensity = data[11] + (((uint16_t)data[10]) << 8);
+  if (this->uv_intensity_sensor_ != nullptr) {
+    if (uv_intensity != 0xFFFF) {
+      this->uv_intensity_sensor_->publish_state(uv_intensity);
     } else {
-      this->uv_value_sensor_->publish_state(NAN);
+      this->uv_intensity_sensor_->publish_state(NAN);
+    }
+  }
+  if (this->uv_index_sensor_ != nullptr) {
+    if (uv_intensity != 0xFFFF) {
+      this->uv_index_sensor_->publish_state(uv_intensiti_to_uvi(uv_intensity));
+    } else {
+      this->uv_index_sensor_->publish_state(NAN);
     }
   }
 #endif // USE_SENSOR

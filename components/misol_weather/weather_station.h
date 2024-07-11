@@ -1,5 +1,6 @@
 #pragma once
 
+#include <chrono>
 #include "esphome/core/component.h"
 #include "esphome/components/uart/uart.h"
 #ifdef USE_SENSOR
@@ -26,8 +27,9 @@ class WeatherStation : public Component, public uart::UARTDevice {
   SUB_SENSOR(wind_speed)
   SUB_SENSOR(wind_gust)
   SUB_SENSOR(wind_direction_degrees)
-  SUB_SENSOR(rainfall)
-  SUB_SENSOR(uv_value)
+  SUB_SENSOR(accumulated_precipitation)
+  SUB_SENSOR(uv_intensity)
+  SUB_SENSOR(uv_index)
   SUB_SENSOR(light)
 #endif
 #ifdef USE_BINARY_SENSOR
@@ -39,6 +41,9 @@ class WeatherStation : public Component, public uart::UARTDevice {
  protected:
   PacketType check_packet_(const uint8_t *data, size_t len);
   void process_packet_(const uint8_t *data, size_t len, bool has_pressure);
+  void reset_sub_entities_();
+  bool first_data_received_{false};
+  std::chrono::steady_clock::time_point last_packet_time_;
 };
 
 } // misol

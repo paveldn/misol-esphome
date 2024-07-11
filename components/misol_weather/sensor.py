@@ -11,11 +11,13 @@ from esphome.const import (
     DEVICE_CLASS_ATMOSPHERIC_PRESSURE,
     DEVICE_CLASS_HUMIDITY,
     DEVICE_CLASS_ILLUMINANCE,
+    DEVICE_CLASS_PRECIPITATION,
     DEVICE_CLASS_TEMPERATURE,
     DEVICE_CLASS_WIND_SPEED,
     ICON_SIGN_DIRECTION,
     ICON_WEATHER_WINDY,
     STATE_CLASS_MEASUREMENT,
+    STATE_CLASS_NONE,
     UNIT_CELSIUS,
     UNIT_DEGREES,
     UNIT_HECTOPASCAL,
@@ -31,9 +33,12 @@ CODEOWNERS = ["@paveldn"]
 
 UNIT_METER_PER_SECOND = "m/s"
 CONF_WIND_GUST = "wind_gust"
-CONF_RAINFALL = "rainfall"
-ICON_WEATHER_POURING = "mdi:weather-pouring"
+CONF_ACCUMULATED_PRECIPITATION = "accumulated_precipitation"
 UNIT_MILLIMETERS = "mm"
+CONF_UV_INTENSITY = "uv_intensity"
+UNIT_ULTRAVIOLET_INTENSITY = "μW/cm²"
+ICON_SUN_WIRELESS = "mdi:sun-wireless-outline"
+CONF_UV_INDEX = "uv_index"
 
 TYPES = [ 
     CONF_TEMPERATURE, 
@@ -42,8 +47,10 @@ TYPES = [
     CONF_WIND_SPEED, 
     CONF_WIND_DIRECTION_DEGREES,
     CONF_WIND_GUST,
-    CONF_RAINFALL,
+    CONF_ACCUMULATED_PRECIPITATION,
     CONF_LIGHT,
+    CONF_UV_INTENSITY,
+    CONF_UV_INDEX,
 ]
 
 CONFIG_SCHEMA = cv.All(
@@ -86,10 +93,10 @@ CONFIG_SCHEMA = cv.All(
                 icon=ICON_WEATHER_WINDY,
                 state_class=STATE_CLASS_MEASUREMENT,
             ),
-            cv.Optional(CONF_RAINFALL): sensor.sensor_schema(
+            cv.Optional(CONF_ACCUMULATED_PRECIPITATION): sensor.sensor_schema(
                 unit_of_measurement=UNIT_MILLIMETERS,
                 accuracy_decimals=1,
-                icon=ICON_WEATHER_POURING,
+                device_class=DEVICE_CLASS_PRECIPITATION,
                 state_class=STATE_CLASS_MEASUREMENT,
             ),
             cv.Optional(CONF_LIGHT): sensor.sensor_schema(
@@ -98,8 +105,19 @@ CONFIG_SCHEMA = cv.All(
                 device_class=DEVICE_CLASS_ILLUMINANCE,
                 state_class=STATE_CLASS_MEASUREMENT,
             ),
+            cv.Optional(CONF_UV_INTENSITY): sensor.sensor_schema(
+                unit_of_measurement=UNIT_ULTRAVIOLET_INTENSITY,
+                accuracy_decimals=0,
+                icon=ICON_SUN_WIRELESS,
+                state_class=STATE_CLASS_MEASUREMENT,
+            ),
+            cv.Optional(CONF_UV_INDEX): sensor.sensor_schema(
+              icon=ICON_SUN_WIRELESS,
+              accuracy_decimals=0,
+              device_class=STATE_CLASS_NONE,
+          ),
         }
-    )
+    ),
 )
 
 async def to_code(config):

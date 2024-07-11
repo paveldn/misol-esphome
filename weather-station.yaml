@@ -36,18 +36,20 @@ misol_weather:
 sensor:
   - platform: misol_weather
     temperature:
-      name: ${device_name} Temperature
+      name: Weather station Temperature
     humidity:
-      name: ${device_name} Humidity
+      name: Weather station Humidity
     pressure:
-      name: ${device_name} Pressure
+      name: Weather station Pressure
     wind_speed:
-      name: ${device_name} Wind Speed
+      name: Weather station Wind Speed
     wind_direction_degrees:
-      name: ${device_name} Wind Direction
+      name: Weather station Wind Direction
     wind_gust:
-      name: ${device_name} Wind Gust
-    rainfall:
-      name: ${device_name} Rainfall
+      name: Weather station Wind Gust
+    accumulated_precipitation:
+      name: Weather station Accumulated Precipitation 
     light:
-      name: ${device_name} Light
+      name: Weather station Light
+    uv_intensity:
+      name: Weather station Ultraviolet Intensity
