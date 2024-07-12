@@ -81,36 +81,6 @@ std::string angle_to_direction(float angle) {
     return directions[index % 16];
 }
 
-uint8_t uv_intensiti_to_uvi(uint16_t uv_intensity) {
-  if (uv_intensity < 432)
-    return 0;
-  if (uv_intensity < 851)
-    return 1;
-  if (uv_intensity < 1210)
-    return 2;
-  if (uv_intensity < 1570)
-    return 3;
-  if (uv_intensity < 2017)
-    return 4;
-  if (uv_intensity < 2450)
-    return 5;
-  if (uv_intensity < 2761)
-    return 6;
-  if (uv_intensity < 3100)  
-    return 7;
-  if (uv_intensity < 3512)
-    return 8;
-  if (uv_intensity < 3918)
-    return 9;
-  if (uv_intensity < 4277)
-    return 10;
-  if (uv_intensity < 4650)
-    return 11;
-  if (uv_intensity < 5029)
-    return 12;
-  return 13;
-}
-
 } // namespace
 
 namespace esphome {
@@ -301,7 +271,8 @@ void WeatherStation::process_packet_(const uint8_t *data, size_t len, bool has_p
   }
   if (this->uv_index_sensor_ != nullptr) {
     if (uv_intensity != 0xFFFF) {
-      this->uv_index_sensor_->publish_state(uv_intensiti_to_uvi(uv_intensity));
+      uint8_t uv_index = uv_intensity / 400;
+      this->uv_index_sensor_->publish_state(uv_index);
     } else {
       this->uv_index_sensor_->publish_state(NAN);
     }
