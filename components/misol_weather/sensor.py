@@ -36,7 +36,7 @@ CONF_WIND_GUST = "wind_gust"
 CONF_ACCUMULATED_PRECIPITATION = "accumulated_precipitation"
 UNIT_MILLIMETERS = "mm"
 CONF_UV_INTENSITY = "uv_intensity"
-UNIT_ULTRAVIOLET_INTENSITY = "μW/cm²"
+UNIT_ULTRAVIOLET_INTENSITY = "mW/m²"
 ICON_SUN_WIRELESS = "mdi:sun-wireless-outline"
 CONF_UV_INDEX = "uv_index"
 
@@ -107,7 +107,7 @@ CONFIG_SCHEMA = cv.All(
             ),
             cv.Optional(CONF_UV_INTENSITY): sensor.sensor_schema(
                 unit_of_measurement=UNIT_ULTRAVIOLET_INTENSITY,
-                accuracy_decimals=0,
+                accuracy_decimals=1,
                 icon=ICON_SUN_WIRELESS,
                 state_class=STATE_CLASS_MEASUREMENT,
             ),

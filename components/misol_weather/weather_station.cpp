@@ -294,7 +294,7 @@ void WeatherStation::process_packet_(const uint8_t *data, size_t len, bool has_p
   unsigned int uv_intensity = data[11] + (((uint16_t)data[10]) << 8);
   if (this->uv_intensity_sensor_ != nullptr) {
     if (uv_intensity != 0xFFFF) {
-      this->uv_intensity_sensor_->publish_state(uv_intensity);
+      this->uv_intensity_sensor_->publish_state(uv_intensity / 10.0f);
     } else {
       this->uv_intensity_sensor_->publish_state(NAN);
     }
