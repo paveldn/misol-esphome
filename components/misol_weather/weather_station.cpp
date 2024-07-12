@@ -6,7 +6,27 @@
 
 namespace {
 
-std::string wind_speed_to_description(double speed) {
+std::string light_level_to_description(float lux) {
+    if (lux < 2) {
+        return "Overcast night";
+    } else if (lux < 3) {
+        return "Clear night sky";
+    } else if (lux < 50) {
+        return "Rural night sky";
+    } else if (lux < 400) {
+        return "Dark overcast sky";
+    } else if (lux < 4500) {
+        return "Overcast day";
+    } else if (lux < 28500) {
+        return "Full daylight";
+    } else if (lux < 120000) {
+        return "Direct sunlight";
+    } else {
+        return "Bright direct sunlight";
+    }
+}
+
+std::string wind_speed_to_description(float speed) {
     if (speed < 0.3) {
         return "Calm";
     } else if (speed >= 0.3 && speed <= 1.5) {
@@ -36,7 +56,7 @@ std::string wind_speed_to_description(double speed) {
     }
 }
 
-std::string angle_to_direction(double angle) {
+std::string angle_to_direction(float angle) {
     const char* directions[] = {
         "N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE",
         "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW", "N"
@@ -281,6 +301,16 @@ void WeatherStation::process_packet_(const uint8_t *data, size_t len, bool has_p
     }
   }
 #endif // USE_SENSOR
+#ifdef USE_TEXT_SENSOR
+  if (this->light_text_sensor_ != nullptr) {
+    uint32_t light = (data[14] + (data[13] << 8) + (data[12] << 16));
+    if (light != 0xFFFFFF) {
+      this->light_text_sensor_->publish_state(light_level_to_description(light / 10.0));
+    } else {
+      this->light_text_sensor_->publish_state("Unknown");
+    }
+  }
+  #endif // USE_TEXT_SENSOR
 }
 
 } // misol

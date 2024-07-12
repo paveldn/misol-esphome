@@ -67,3 +67,5 @@ text_sensor:
       name: Weather station Wind Direction Text
     wind_speed:
       name: Weather station Wind Speed Text
+    light:
+      name: Weather station Light Text

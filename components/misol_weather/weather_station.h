@@ -41,6 +41,7 @@ class WeatherStation : public Component, public uart::UARTDevice {
 #ifdef USE_TEXT_SENSOR
   SUB_TEXT_SENSOR(wind_direction)
   SUB_TEXT_SENSOR(wind_speed)
+  SUB_TEXT_SENSOR(light)
 #endif
  public:
   float get_setup_priority() const override { return setup_priority::HARDWARE; }

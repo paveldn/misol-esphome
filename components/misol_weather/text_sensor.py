@@ -2,6 +2,7 @@ import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome.components import text_sensor
 from esphome.const import (
+  CONF_LIGHT,
   CONF_WIND_SPEED,
   ICON_SIGN_DIRECTION,
   ICON_WEATHER_WINDY,
@@ -14,10 +15,13 @@ from . import (
 CODEOWNERS = ["@paveldn"]
 
 CONF_WIND_DIRECTION = "wind_direction"
+ICON_WEATHER_SUNNY = "mdi:weather-sunny"
+
 
 TYPES = [ 
     CONF_WIND_SPEED,
     CONF_WIND_DIRECTION,
+    CONF_LIGHT,
 ]
 
 CONFIG_SCHEMA = cv.All(
@@ -30,6 +34,10 @@ CONFIG_SCHEMA = cv.All(
             cv.Optional(CONF_WIND_DIRECTION): text_sensor.text_sensor_schema(
                 icon=ICON_SIGN_DIRECTION,
             ),
+            cv.Optional(CONF_LIGHT): text_sensor.text_sensor_schema(
+                icon=ICON_WEATHER_SUNNY,
+            ),
+            
         }
     ),
 )
