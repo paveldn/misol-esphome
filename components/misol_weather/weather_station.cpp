@@ -6,6 +6,22 @@
 
 namespace {
 
+std::string precipitation_to_description(float mm_per_hour) {
+    if (mm_per_hour <= 0) {
+        return "No precipitation";
+    } else if (mm_per_hour > 0 && mm_per_hour <= 2.5) {
+        return "Light rain";
+    } else if (mm_per_hour > 2.5 && mm_per_hour <= 10) {
+        return "Moderate rain";
+    } else if (mm_per_hour > 10 && mm_per_hour <= 50) {
+        return "Heavy rain";
+    } else if (mm_per_hour > 50) {
+        return "Violent rain";
+    } else {
+        return "Extreme precipitation";
+    }
+}
+
 std::string light_level_to_description(float lux) {
     if (lux < 2) {
         return "Overcast night";
