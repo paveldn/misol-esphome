@@ -15,13 +15,16 @@ from . import (
 CODEOWNERS = ["@paveldn"]
 
 CONF_WIND_DIRECTION = "wind_direction"
+CONF_PRECIPITATION_INTENSITY = "precipitation_intensity"
 ICON_WEATHER_SUNNY = "mdi:weather-sunny"
+ICON_WEATHER_POURING = "mdi:weather-pouring"
 
 
 TYPES = [ 
     CONF_WIND_SPEED,
     CONF_WIND_DIRECTION,
     CONF_LIGHT,
+    CONF_PRECIPITATION_INTENSITY,
 ]
 
 CONFIG_SCHEMA = cv.All(
@@ -37,7 +40,9 @@ CONFIG_SCHEMA = cv.All(
             cv.Optional(CONF_LIGHT): text_sensor.text_sensor_schema(
                 icon=ICON_WEATHER_SUNNY,
             ),
-            
+            cv.Optional(CONF_PRECIPITATION_INTENSITY): text_sensor.text_sensor_schema(
+                icon=ICON_WEATHER_POURING,
+            ),
         }
     ),
 )
