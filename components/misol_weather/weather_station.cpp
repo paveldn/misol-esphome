@@ -143,7 +143,7 @@ void WeatherStation::reset_sub_entities_() {
     this->uv_index_sensor_->publish_state(NAN);
   if (this->precipitation_intensity_sensor_ != nullptr) {
     this->precipitation_intensity_sensor_->publish_state(NAN);
-    this->previos_precipitation_ = 0xFFFF;
+    this->previous_precipitation_.reset();
   }    
 #endif // USE_SENSOR
 }
@@ -269,23 +269,18 @@ void WeatherStation::process_packet_(const uint8_t *data, size_t len, bool has_p
   bool precipitation_intensity_updated = false;
   uint16_t accumulated_precipitation = data[9] + (((uint16_t)data[8]) << 8);
   float precipitation_intensity = NAN;
-  if (accumulated_precipitation != 0xFFFF) {
-      if (this->previos_precipitation_ != 0xFFFF) {
-        std::chrono::seconds interval = std::chrono::duration_cast<std::chrono::seconds>(now - this->previos_precipitation_timestamp_);
-        if (interval > PRECIPITATION_INTENSITY_INTERVAL) {
-          this->previos_precipitation_ = accumulated_precipitation;
-          this->previos_precipitation_timestamp_ = now;
-          precipitation_intensity = (accumulated_precipitation - this->previos_precipitation_) * 0.3 / (interval.count() / 3600.0);
-          precipitation_intensity_updated = true;
-        }
-      } else {
-        this->previos_precipitation_ = accumulated_precipitation;
-        this->previos_precipitation_timestamp_ = std::chrono::steady_clock::now();
+    if (this->previous_precipitation_.has_value()) {
+      std::chrono::seconds interval = std::chrono::duration_cast<std::chrono::seconds>(now - this->previous_precipitation_timestamp_);
+      if (interval > PRECIPITATION_INTENSITY_INTERVAL) {
+        precipitation_intensity = ((float)(accumulated_precipitation - this->previous_precipitation_.value())) * 0.3f / (interval.count() / 3600.0f);
+        this->previous_precipitation_ = accumulated_precipitation;
+        this->previous_precipitation_timestamp_ = now;
+        precipitation_intensity_updated = true;
       }
-  } else {
-    this->previos_precipitation_ = 0xFFFF;
-    precipitation_intensity_updated = true;
-  }
+    } else {
+      this->previous_precipitation_ = accumulated_precipitation;
+      this->previous_precipitation_timestamp_ = std::chrono::steady_clock::now();
+    }
 #endif // USE_SENSOR || USE_TEXT_SENSOR
 #ifdef USE_SENSOR
   if (this->accumulated_precipitation_sensor_ != nullptr) {

@@ -55,8 +55,8 @@ class WeatherStation : public Component, public uart::UARTDevice {
   bool first_data_received_{false};
   std::chrono::steady_clock::time_point last_packet_time_;
 #ifdef USE_SENSOR
-  std::chrono::steady_clock::time_point previos_precipitation_timestamp_;
-  uint16_t previos_precipitation_{0xFFFF};  
+  std::chrono::steady_clock::time_point previous_precipitation_timestamp_;
+  optional<uint16_t> previous_precipitation_{};  
 #endif // USE_SENSOR
 };
 
