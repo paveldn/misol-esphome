@@ -1,3 +1,5 @@
+substitutions:
+  device_name: Weather station
 
 esphome:
   name: weather_station
@@ -36,36 +38,38 @@ misol_weather:
 sensor:
   - platform: misol_weather
     temperature:
-      name: Weather station Temperature
+      name: ${device_name} Temperature
     humidity:
-      name: Weather station Humidity
+      name: ${device_name} Humidity
     pressure:
-      name: Weather station Pressure
+      name: ${device_name} Pressure
     wind_speed:
-      name: Weather station Wind Speed
+      name: ${device_name} Wind Speed
     wind_direction_degrees:
-      name: Weather station Wind Direction
+      name: ${device_name} Wind Direction
     wind_gust:
-      name: Weather station Wind Gust
+      name: ${device_name} Wind Gust
     accumulated_precipitation:
-      name: Weather station Accumulated Precipitation 
+      name: ${device_name} Accumulated Precipitation 
     light:
-      name: Weather station Light
+      name: ${device_name} Light
     uv_intensity:
-      name: Weather station Ultraviolet Intensity
+      name: ${device_name} Ultraviolet Intensity
     uv_index:
-      name: Weather station Ultraviolet Index
+      name: ${device_name} Ultraviolet Index
+    precipitation_intensity:
+      name: ${device_name} Precipitation Intensity
 
 binary_sensor:
   - platform: misol_weather
     battery_level:
-      name: Weather station Battery Level
+      name: ${device_name} Battery Level
 
 text_sensor:
   - platform: misol_weather
     wind_direction:
-      name: Weather station Wind Direction Text
+      name: ${device_name} Wind Direction Text
     wind_speed:
-      name: Weather station Wind Speed Text
+      name: ${device_name} Wind Speed Text
     light:
-      name: Weather station Light Text
+      name: ${device_name} Light Text

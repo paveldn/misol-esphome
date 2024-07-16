@@ -34,6 +34,7 @@ class WeatherStation : public Component, public uart::UARTDevice {
   SUB_SENSOR(uv_intensity)
   SUB_SENSOR(uv_index)
   SUB_SENSOR(light)
+  SUB_SENSOR(precipitation_intensity)
 #endif
 #ifdef USE_BINARY_SENSOR
   SUB_BINARY_SENSOR(battery_level)
@@ -48,10 +49,14 @@ class WeatherStation : public Component, public uart::UARTDevice {
   void loop() override;
  protected:
   PacketType check_packet_(const uint8_t *data, size_t len);
-  void process_packet_(const uint8_t *data, size_t len, bool has_pressure);
+  void process_packet_(const uint8_t *data, size_t len, bool has_pressure, const std::chrono::steady_clock::time_point &now);
   void reset_sub_entities_();
   bool first_data_received_{false};
   std::chrono::steady_clock::time_point last_packet_time_;
+#ifdef USE_SENSOR
+  std::chrono::steady_clock::time_point previos_precipitation_timestamp_;
+  uint16_t previos_precipitation_{0xFFFF};  
+#endif // USE_SENSOR
 };
 
 } // misol

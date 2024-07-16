@@ -88,6 +88,7 @@ namespace misol {
 
 static const char *TAG = "misol.weather_station"; 
 constexpr std::chrono::milliseconds COMMUNICATION_TIMOUT = std::chrono::minutes(2);
+constexpr std::chrono::milliseconds PRECIPITATION_INTENSITY_INTERVAL = std::chrono::minutes(3);
 
 void WeatherStation::loop() {
   // Checking timeout
@@ -108,7 +109,7 @@ void WeatherStation::loop() {
     this->last_packet_time_ = now;
     PacketType packet_type = check_packet_(buffer.get(), size);
     if (packet_type != PacketType::WRONG_PACKET) {
-      this->process_packet_(buffer.get(), size, packet_type == PacketType::BASIC_WITH_PRESSURE);
+      this->process_packet_(buffer.get(), size, packet_type == PacketType::BASIC_WITH_PRESSURE, now);
     } else {
       ESP_LOGW(TAG, "Unknown packet received: %s", format_hex_pretty(buffer.get(), size).c_str());
     }
@@ -117,6 +118,7 @@ void WeatherStation::loop() {
 }
 
 void WeatherStation::reset_sub_entities_() {
+#ifdef USE_SENSOR
   if (this->temperature_sensor_ != nullptr)
     this->temperature_sensor_->publish_state(NAN);
   if (this->humidity_sensor_ != nullptr)
@@ -135,6 +137,12 @@ void WeatherStation::reset_sub_entities_() {
     this->uv_intensity_sensor_->publish_state(NAN);
   if (this->light_sensor_ != nullptr)
     this->light_sensor_->publish_state(NAN);
+  if (this->uv_index_sensor_ != nullptr)
+    this->uv_index_sensor_->publish_state(NAN);
+  if (this->precipitation_intensity_sensor_ != nullptr) {
+    this->precipitation_intensity_sensor_->publish_state(NAN);
+  }    
+#endif // USE_SENSOR
 }
 
 PacketType WeatherStation::check_packet_(const uint8_t *data, size_t len) {
@@ -169,7 +177,7 @@ PacketType WeatherStation::check_packet_(const uint8_t *data, size_t len) {
   return PacketType::BASIC_PACKET;
 }
 
-void WeatherStation::process_packet_(const uint8_t *data, size_t len, bool has_pressure) {
+void WeatherStation::process_packet_(const uint8_t *data, size_t len, bool has_pressure, const std::chrono::steady_clock::time_point &now) {
 #ifdef USE_SENSOR
   if (this->pressure_sensor_ != nullptr) {
     if (has_pressure) {
@@ -255,9 +263,27 @@ void WeatherStation::process_packet_(const uint8_t *data, size_t len, bool has_p
   }
 #endif // USE_SENSOR
 #ifdef USE_SENSOR
+  uint16_t accumulated_precipitation = data[9] + (((uint16_t)data[8]) << 8);
   if (this->accumulated_precipitation_sensor_ != nullptr) {
-    uint16_t accumulated_precipitation = data[9] + (((uint16_t)data[8]) << 8);
     this->accumulated_precipitation_sensor_->publish_state(accumulated_precipitation * 0.3);
+  }
+  if (this->precipitation_intensity_sensor_ != nullptr) {
+    if (accumulated_precipitation != 0xFFFF) {
+      if (this->previos_precipitation_ != 0xFFFF) {
+        std::chrono::seconds interval = std::chrono::duration_cast<std::chrono::seconds>(now - this->previos_precipitation_timestamp_);
+        if (interval > PRECIPITATION_INTENSITY_INTERVAL) {
+          this->previos_precipitation_ = accumulated_precipitation;
+          this->previos_precipitation_timestamp_ = now;
+          this->precipitation_intensity_sensor_->publish_state((accumulated_precipitation - this->previos_precipitation_) * 0.3 / (interval.count() / 60.0 / 60.0));
+        }
+      } else {
+        this->previos_precipitation_ = accumulated_precipitation;
+        this->previos_precipitation_timestamp_ = std::chrono::steady_clock::now();
+        this->precipitation_intensity_sensor_->publish_state(0);
+      }
+    } else {
+      this->precipitation_intensity_sensor_->publish_state(NAN);
+    }
   }
 #endif // USE_SENSOR
 #ifdef USE_SENSOR
