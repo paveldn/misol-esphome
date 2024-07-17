@@ -13,7 +13,7 @@ from . import (
 
 CODEOWNERS = ["@paveldn"]
 
-TYPES = [ 
+TYPES = [
     CONF_BATTERY_LEVEL,
 ]
 
@@ -28,6 +28,7 @@ CONFIG_SCHEMA = cv.All(
         }
     ),
 )
+
 
 async def to_code(config):
     paren = await cg.get_variable(config[CONF_MISOL_ID])

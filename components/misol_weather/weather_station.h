@@ -14,13 +14,13 @@
 #endif
 
 namespace esphome {
-namespace misol {
+namespace misol_weather {
 
-  enum class PacketType {
-    WRONG_PACKET = -1,
-    BASIC_PACKET = 0,
-    BASIC_WITH_PRESSURE,
-  };
+enum class PacketType {
+  WRONG_PACKET = -1,
+  BASIC_PACKET = 0,
+  BASIC_WITH_PRESSURE,
+};
 
 class WeatherStation : public Component, public uart::UARTDevice {
 #ifdef USE_SENSOR
@@ -48,17 +48,19 @@ class WeatherStation : public Component, public uart::UARTDevice {
  public:
   float get_setup_priority() const override { return setup_priority::HARDWARE; }
   void loop() override;
+
  protected:
   PacketType check_packet_(const uint8_t *data, size_t len);
-  void process_packet_(const uint8_t *data, size_t len, bool has_pressure, const std::chrono::steady_clock::time_point &now);
+  void process_packet_(const uint8_t *data, size_t len, bool has_pressure,
+                       const std::chrono::steady_clock::time_point &now);
   void reset_sub_entities_();
   bool first_data_received_{false};
   std::chrono::steady_clock::time_point last_packet_time_;
-#ifdef USE_SENSOR
+#if defined(USE_SENSOR) || defined(USE_TEXT_SENSOR)
   std::chrono::steady_clock::time_point previous_precipitation_timestamp_;
-  optional<uint16_t> previous_precipitation_{};  
-#endif // USE_SENSOR
+  optional<uint16_t> previous_precipitation_{};
+#endif  // USE_SENSOR || USE_TEXT_SENSOR
 };
 
-} // misol
-} // esphome
+}  // namespace misol_weather
+}  // namespace esphome

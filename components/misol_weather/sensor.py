@@ -44,11 +44,11 @@ ICON_SUN_WIRELESS = "mdi:sun-wireless-outline"
 CONF_UV_INDEX = "uv_index"
 UNIT_MILLIMETERS_PER_HOUR = "mm/h"
 
-TYPES = [ 
-    CONF_TEMPERATURE, 
-    CONF_HUMIDITY, 
-    CONF_PRESSURE, 
-    CONF_WIND_SPEED, 
+TYPES = [
+    CONF_TEMPERATURE,
+    CONF_HUMIDITY,
+    CONF_PRESSURE,
+    CONF_WIND_SPEED,
     CONF_WIND_DIRECTION_DEGREES,
     CONF_WIND_GUST,
     CONF_ACCUMULATED_PRECIPITATION,
@@ -123,13 +123,14 @@ CONFIG_SCHEMA = cv.All(
                 state_class=STATE_CLASS_MEASUREMENT,
             ),
             cv.Optional(CONF_UV_INDEX): sensor.sensor_schema(
-              icon=ICON_SUN_WIRELESS,
-              accuracy_decimals=0,
-              device_class=STATE_CLASS_NONE,
-          ),
+                icon=ICON_SUN_WIRELESS,
+                accuracy_decimals=0,
+                device_class=STATE_CLASS_NONE,
+            ),
         }
     ),
 )
+
 
 async def to_code(config):
     paren = await cg.get_variable(config[CONF_MISOL_ID])
