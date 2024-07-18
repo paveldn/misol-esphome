@@ -1,0 +1,12 @@
+esphome:
+  name: componenttestesp8266ard
+  friendly_name: esp8266-ard
+
+esp8266:
+  board: d1_mini
+
+logger:
+  level: VERY_VERBOSE
+
+<<: !include local_component.yaml
+<<: !include ../test.esp8266-ard.yaml

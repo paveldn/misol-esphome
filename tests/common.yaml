@@ -1,0 +1,53 @@
+wifi:
+  ssid: MySSID
+  password: password1
+
+uart:
+  - id: uart_misol_weather
+    tx_pin: ${tx_pin}
+    rx_pin: ${rx_pin}
+    baud_rate: 9600
+
+misol_weather:
+  uart_id: uart_misol_weather
+
+sensor:
+  - platform: misol_weather
+    temperature:
+      name: Weather station Temperature
+    humidity:
+      name: Weather station Humidity
+    pressure:
+      name: Weather station Pressure
+    wind_speed:
+      name: Weather station Wind Speed
+    wind_direction_degrees:
+      name: Weather station Wind Direction
+    wind_gust:
+      name: Weather station Wind Gust
+    accumulated_precipitation:
+      name: Weather station Accumulated Precipitation
+    light:
+      name: Weather station Light
+    uv_intensity:
+      name: Weather station Ultraviolet Intensity
+    uv_index:
+      name: Weather station Ultraviolet Index
+    precipitation_intensity:
+      name: Weather station Precipitation Intensity
+
+binary_sensor:
+  - platform: misol_weather
+    battery_level:
+      name: Weather station Battery Level
+
+text_sensor:
+  - platform: misol_weather
+    wind_direction:
+      name: Weather station Wind Direction Text
+    wind_speed:
+      name: Weather station Wind Speed Text
+    light:
+      name: Weather station Light Text
+    precipitation_intensity:
+      name: Weather station Precipitation Intensity Text

@@ -1,0 +1,32 @@
+# Build component for different platforms
+name: build CI test
+
+on:
+  push:
+    branches-ignore: [  ]
+  pull_request:
+    branches: [ "master", "dev" , "experimental" ]
+
+jobs:
+  tests:
+    name: Building ${{ matrix.file }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        file:
+          - tests/base/build_components_base.esp32-ard.yaml
+          - tests/base/build_components_base.esp32-c3-ard.yaml
+          - tests/base/build_components_base.esp32-c3-idf.yaml
+          - tests/base/build_components_base.esp32-idf.yaml
+          - tests/base/build_components_base.esp8266-ard.yaml
+          - tests/base/build_components_base.rp2040-ard.yaml
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4.1.3
+    - name: Install esphome
+      run: pip3 install -U esphome
+    - name: Version esphome
+      run: esphome version
+    - name: Build ESPHome config
+      run: esphome compile ${{ matrix.file }}

@@ -1,0 +1,14 @@
+esphome:
+  name: componenttestesp32c3ard
+  friendly_name: esp32-c3-ard
+
+esp32:
+  board: lolin_c3_mini
+  framework:
+    type: arduino
+
+logger:
+  level: VERY_VERBOSE
+
+<<: !include local_component.yaml
+<<: !include ../test.esp32-c3-ard.yaml
