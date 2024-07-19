@@ -24,7 +24,7 @@ Example configuration:
 Configuration variables:
 ------------------------
 
-- **uart_id** (Required, ID): The ID of the UART bus to use for communication with the weather station.
+- **uart_id** (Required, `ID <https://esphome.io/guides/configuration-types.html#config-id>`_): The ID of the UART bus to use for communication with the weather station.
 
 Sensor
 ------
@@ -66,18 +66,29 @@ Example configuration:
 Configuration variables:
 ------------------------
 
-- **misol_id** (Required, ID): The ID of the weather station component.
+- **misol_id** (Required, `ID <https://esphome.io/guides/configuration-types.html#config-id>`_): The ID of the weather station component.
 - **temperature** (Optional): The temperature sensor.
+  All options from `Sensor <https://esphome.io/components/sensor/index.html#config-sensor>`_.
 - **humidity** (Optional): The humidity sensor.
+  All options from `Sensor <https://esphome.io/components/sensor/index.html#config-sensor>`_.
 - **pressure** (Optional): The pressure sensor.
+  All options from `Sensor <https://esphome.io/components/sensor/index.html#config-sensor>`_.
 - **wind_speed** (Optional): The wind speed sensor.
+  All options from `Sensor <https://esphome.io/components/sensor/index.html#config-sensor>`_.
 - **wind_direction_degrees** (Optional): The wind direction sensor in degrees.
+  All options from `Sensor <https://esphome.io/components/sensor/index.html#config-sensor>`_.
 - **wind_gust** (Optional): The wind gust sensor.
+  All options from `Sensor <https://esphome.io/components/sensor/index.html#config-sensor>`_.
 - **accumulated_precipitation** (Optional): The accumulated precipitation sensor.
+  All options from `Sensor <https://esphome.io/components/sensor/index.html#config-sensor>`_.
 - **precipitation_intensity** (Optional): The precipitation intensity sensor.
+  All options from `Sensor <https://esphome.io/components/sensor/index.html#config-sensor>`_.
 - **light** (Optional): The light sensor.
+  All options from `Sensor <https://esphome.io/components/sensor/index.html#config-sensor>`_.
 - **uv_intensity** (Optional): The UV intensity sensor.
+  All options from `Sensor <https://esphome.io/components/sensor/index.html#config-sensor>`_.
 - **uv_index** (Optional): The UV index sensor.
+  All options from `Sensor <https://esphome.io/components/sensor/index.html#config-sensor>`_.
 
 Binary Sensor
 -------------
@@ -98,8 +109,9 @@ Example configuration:
 Configuration variables:
 ------------------------
 
-- **misol_id** (Required, ID): The ID of the weather station component.
+- **misol_id** (Required, `ID <https://esphome.io/guides/configuration-types.html#config-id>`_): The ID of the weather station component.
 - **battery_level** (Required): The battery level sensor.
+  All options from `Binary Sensor <https://esphome.io/components/binary_sensor/index.html#base-binary-sensor-configuration>`_.
 
 Text Sensor
 -----------
@@ -124,10 +136,13 @@ Example configuration:
 Configuration variables:
 ------------------------
 
-- **misol_id** (Required, ID): The ID of the weather station component.
+- **misol_id** (Required, `ID <https://esphome.io/guides/configuration-types.html#config-id>`_): The ID of the weather station component.
 - **light** (Optional): The light sensor in text format.
+  All options from `Text Sensor <https://esphome.io/components/text_sensor/index.html#base-text-sensor-configuration>`_.
 - **wind_direction** (Optional): The wind direction sensor in text format.
+  All options from `Text Sensor <https://esphome.io/components/text_sensor/index.html#base-text-sensor-configuration>`_.
 - **wind_speed** (Optional): The wind speed sensor in text format.
+  All options from `Text Sensor <https://esphome.io/components/text_sensor/index.html#base-text-sensor-configuration>`_.
 
 See Also
 --------
