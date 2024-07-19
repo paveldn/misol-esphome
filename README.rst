@@ -1,7 +1,9 @@
-Weather Station Component
-=========================
+Misol Weather Station Component
+===============================
 
-Work in progress...
+.. raw:: HTML
+
+  <p><a href="./images/misol-weather-station.jpg?raw=true"><img src="./images/misol-weather-station.jpg?raw=true" height="50%" width="50%"></a><br><i>&emsp;Misol weather station</i></p>
 
 This is an implementation of the ESPHome component for a Misol weather station with RS485 output. The weather station is a combination of various sensors, including temperature, humidity, pressure (not available for all models), wind speed, wind direction, wind gust, accumulated precipitation, light, UV intensity, and UV index.
 
