@@ -44,7 +44,17 @@ class WeatherStation : public Component, public uart::UARTDevice {
   SUB_TEXT_SENSOR(wind_speed)
   SUB_TEXT_SENSOR(light)
   SUB_TEXT_SENSOR(precipitation_intensity)
+  void set_north_correction(int north_correction) { this->north_correction_ = north_correction; };
+  void set_three_letter_direction(bool three_letter_direction) { this->three_letter_direction_ = three_letter_direction; };
 #endif
+#if defined(USE_SENSOR) || defined(USE_TEXT_SENSOR)
+  void set_precipitation_intensity_interval(unsigned int precipitation_intensity_interval) {
+    if (precipitation_intensity_interval == 0) {
+      precipitation_intensity_interval = 1;
+    }
+    this->precipitation_intensity_interval_ = std::chrono::minutes(precipitation_intensity_interval);
+  }
+#endif  // USE_SENSOR || USE_TEXT_SENSOR
  public:
   float get_setup_priority() const override { return setup_priority::HARDWARE; }
   void loop() override;
@@ -57,9 +67,15 @@ class WeatherStation : public Component, public uart::UARTDevice {
   bool first_data_received_{false};
   std::chrono::steady_clock::time_point last_packet_time_;
 #if defined(USE_SENSOR) || defined(USE_TEXT_SENSOR)
+  std::chrono::milliseconds precipitation_intensity_interval_{std::chrono::minutes(5)};
   std::chrono::steady_clock::time_point previous_precipitation_timestamp_;
   optional<uint16_t> previous_precipitation_{};
 #endif  // USE_SENSOR || USE_TEXT_SENSOR
+#ifdef USE_TEXT_SENSOR
+  int north_correction_{0};
+  bool three_letter_direction_{false};
+#endif
+
 };
 
 }  // namespace misol_weather

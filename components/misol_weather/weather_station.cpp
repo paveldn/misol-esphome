@@ -74,11 +74,17 @@ std::string wind_speed_to_description(float speed) {
   }
 }
 
-std::string angle_to_direction(float angle) {
-  const char *directions[] = {"N",   "NNE", "NE",  "ENE", "E",   "ESE", "SE",  "SSE", "S",
-                              "SSW", "SW",  "WSW", "W",   "WNW", "NW",  "NNW", "N"};
-  int index = static_cast<int>((angle + 11.25) / 22.5);
-  return directions[index % 16];
+std::string angle_to_compass_direction(float angle, bool use_secondary_intercardinal_directions = false) {
+  if (use_secondary_intercardinal_directions) {
+    const char* directions[] = {"N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE",
+                                "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW", "N"};
+    int index = static_cast<int>((angle + 11.25) / 22.5) % 16;
+    return directions[index];
+  } else {
+    const char* directions[] = {"N", "NE", "E", "SE", "S", "SW", "W", "NW", "N"};
+    int index = static_cast<int>((angle + 22.5) / 45.0) % 8;
+    return directions[index];
+  }
 }
 
 }  // namespace
@@ -204,7 +210,8 @@ void WeatherStation::process_packet_(const uint8_t *data, size_t len, bool has_p
   if (this->wind_direction_text_sensor_ != nullptr) {
     uint16_t wind_direction = data[2] + (((uint16_t) (data[3] & 0x80)) << 1);
     if (wind_direction != 0x1FF) {
-      this->wind_direction_text_sensor_->publish_state(angle_to_direction(wind_direction));
+      this->wind_direction_text_sensor_->publish_state(angle_to_compass_direction(wind_direction + this->north_correction_,
+                                                                         this->three_letter_direction_));
     } else {
       this->wind_direction_text_sensor_->publish_state("Unknown");
     }
@@ -271,7 +278,7 @@ void WeatherStation::process_packet_(const uint8_t *data, size_t len, bool has_p
   if (this->previous_precipitation_.has_value()) {
     std::chrono::seconds interval =
         std::chrono::duration_cast<std::chrono::seconds>(now - this->previous_precipitation_timestamp_);
-    if (interval > PRECIPITATION_INTENSITY_INTERVAL) {
+    if (interval > this->precipitation_intensity_interval_) {
       precipitation_intensity = ((float) (accumulated_precipitation - this->previous_precipitation_.value())) * 0.3f /
                                 (interval.count() / 3600.0f);
       this->previous_precipitation_ = accumulated_precipitation;
