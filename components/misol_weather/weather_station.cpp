@@ -74,17 +74,12 @@ std::string wind_speed_to_description(float speed) {
   }
 }
 
-std::string angle_to_compass_direction(float angle, bool use_secondary_intercardinal_directions = false) {
-  if (use_secondary_intercardinal_directions) {
-    const char* directions[] = {"N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE",
-                                "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW", "N"};
-    int index = static_cast<int>((angle + 11.25) / 22.5) % 16;
-    return directions[index];
-  } else {
-    const char* directions[] = {"N", "NE", "E", "SE", "S", "SW", "W", "NW", "N"};
-    int index = static_cast<int>((angle + 22.5) / 45.0) % 8;
-    return directions[index];
-  }
+std::string angle_to_compass_direction(float angle, bool use_3_letter_direction = false) {
+  const char* directions[] = {"N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE",
+                              "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"};
+  uint8_t correction = use_3_letter_direction ? 0 : 1;
+  int index = static_cast<int>((angle + 11.25 * (1 + correction)) / (22.5 * (1 + correction))) % (8 * (2 - correction));
+  return directions[index * (1 + correction)];
 }
 
 }  // namespace
