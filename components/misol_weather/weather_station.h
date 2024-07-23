@@ -49,9 +49,6 @@ class WeatherStation : public Component, public uart::UARTDevice {
 #endif
 #if defined(USE_SENSOR) || defined(USE_TEXT_SENSOR)
   void set_precipitation_intensity_interval(unsigned int precipitation_intensity_interval) {
-    if (precipitation_intensity_interval == 0) {
-      precipitation_intensity_interval = 1;
-    }
     this->precipitation_intensity_interval_ = std::chrono::minutes(precipitation_intensity_interval);
   }
 #endif  // USE_SENSOR || USE_TEXT_SENSOR
