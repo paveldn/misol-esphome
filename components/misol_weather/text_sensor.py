@@ -18,7 +18,7 @@ CONF_WIND_DIRECTION = "wind_direction"
 CONF_PRECIPITATION_INTENSITY = "precipitation_intensity"
 ICON_WEATHER_SUNNY = "mdi:weather-sunny"
 ICON_WEATHER_POURING = "mdi:weather-pouring"
-CONF_THREE_LETTER_DIRECTION = "three_letter_direction"
+CONF_SECONDARY_INTERCARDINAL_DIRECTION = "secondary_intercardinal_direction"
 CONF_NORTH_CORRECTION = "north_correction"
 
 TYPES = [
@@ -38,7 +38,7 @@ CONFIG_SCHEMA = cv.All(
             cv.Optional(CONF_WIND_DIRECTION): text_sensor.text_sensor_schema(
                 icon=ICON_SIGN_DIRECTION,
             ).extend({
-                cv.Optional(CONF_THREE_LETTER_DIRECTION): cv.boolean,
+                cv.Optional(CONF_SECONDARY_INTERCARDINAL_DIRECTION): cv.boolean,
                 cv.Optional(CONF_NORTH_CORRECTION): cv.int_range(min=-180, max=180),
             }),
             cv.Optional(CONF_LIGHT): text_sensor.text_sensor_schema(
@@ -62,5 +62,5 @@ async def to_code(config):
     if conf := config.get(CONF_WIND_DIRECTION):
         if CONF_NORTH_CORRECTION in conf:
             cg.add(paren.set_north_correction(conf[CONF_NORTH_CORRECTION]))
-        if CONF_THREE_LETTER_DIRECTION in conf:
-            cg.add(paren.set_three_letter_direction(conf[CONF_THREE_LETTER_DIRECTION]))
+        if CONF_SECONDARY_INTERCARDINAL_DIRECTION in conf:
+            cg.add(paren.set_secondary_intercardinal_direction(conf[CONF_SECONDARY_INTERCARDINAL_DIRECTION]))

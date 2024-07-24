@@ -45,7 +45,7 @@ class WeatherStation : public Component, public uart::UARTDevice {
   SUB_TEXT_SENSOR(light)
   SUB_TEXT_SENSOR(precipitation_intensity)
   void set_north_correction(int north_correction) { this->north_correction_ = north_correction; };
-  void set_three_letter_direction(bool three_letter_direction) { this->three_letter_direction_ = three_letter_direction; };
+  void set_secondary_intercardinal_direction(bool three_letter_direction) { this->secondary_intercardinal_direction_ = three_letter_direction; };
 #endif
 #if defined(USE_SENSOR) || defined(USE_TEXT_SENSOR)
   void set_precipitation_intensity_interval(unsigned int precipitation_intensity_interval) {
@@ -70,7 +70,7 @@ class WeatherStation : public Component, public uart::UARTDevice {
 #endif  // USE_SENSOR || USE_TEXT_SENSOR
 #ifdef USE_TEXT_SENSOR
   int north_correction_{0};
-  bool three_letter_direction_{false};
+  bool secondary_intercardinal_direction_{false};
 #endif
 
 };

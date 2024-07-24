@@ -70,7 +70,7 @@ text_sensor:
     wind_direction:
       name: ${device_name} Wind Direction Text
       north_correction: 0
-      three_letter_direction: true
+      secondary_intercardinal_direction: true
     wind_speed:
       name: ${device_name} Wind Speed Text
     light:

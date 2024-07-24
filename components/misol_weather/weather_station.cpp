@@ -206,7 +206,7 @@ void WeatherStation::process_packet_(const uint8_t *data, size_t len, bool has_p
     uint16_t wind_direction = data[2] + (((uint16_t) (data[3] & 0x80)) << 1);
     if (wind_direction != 0x1FF) {
       this->wind_direction_text_sensor_->publish_state(angle_to_compass_direction(wind_direction + this->north_correction_,
-                                                                         this->three_letter_direction_));
+                                                                         this->secondary_intercardinal_direction_));
     } else {
       this->wind_direction_text_sensor_->publish_state("Unknown");
     }
