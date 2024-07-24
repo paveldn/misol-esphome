@@ -19,7 +19,7 @@ CONF_PRECIPITATION_INTENSITY = "precipitation_intensity"
 CONF_SECONDARY_INTERCARDINAL_DIRECTION = "secondary_intercardinal_direction"
 CONF_WEATHER_CONDITIONS = "weather_conditions"
 CONF_WIND_DIRECTION = "wind_direction"
-ICON_WEATHER_PARTLYCLOUDY = "mdi:weather-partlycloudy"
+ICON_WEATHER_PARTLY_CLOUDY = "mdi:weather-partly-cloudy"
 ICON_WEATHER_POURING = "mdi:weather-pouring"
 ICON_WEATHER_SUNNY = "mdi:weather-sunny"
 
@@ -51,7 +51,7 @@ CONFIG_SCHEMA = cv.All(
                 icon=ICON_WEATHER_POURING,
             ),
             cv.Optional(CONF_WEATHER_CONDITIONS): text_sensor.text_sensor_schema(
-                icon=ICON_WEATHER_PARTLYCLOUDY,
+                icon=ICON_WEATHER_PARTLY_CLOUDY,
             ),
         }
     ),
