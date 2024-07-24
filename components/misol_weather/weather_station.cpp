@@ -82,6 +82,47 @@ std::string angle_to_compass_direction(float angle, bool use_3_letter_direction 
   return directions[index * (1 + correction)];
 }
 
+std::string get_weather_condition(float temperature, float rain_intensity, float wind_strength, float solar_light_level, float humidity, esphome::optional<float> barometric_pressure = {}) {
+  std::string condition = "Clear";
+  // Temperature-based conditions
+  if (temperature > 30) {
+    condition = "Hot";
+  } else if (temperature < 0) {
+    condition = "Freezing";
+  }
+  // Rain intensity-based conditions
+  if (rain_intensity > 0) {
+    if (rain_intensity < 2.5) {
+        condition = "Light Rain";
+    } else if (rain_intensity < 7.6) {
+        condition = "Moderate Rain";
+    } else {
+        condition = "Heavy Rain";
+    }
+  }
+  // Wind strength-based conditions
+  if (wind_strength > 25) {
+    condition = "Windy";
+  }
+  // Solar light level-based conditions
+  if (solar_light_level < 2000 && condition == "Clear") {
+    condition = "Cloudy";
+  }
+  // Humidity-based conditions
+  if (humidity > 90 && condition == "Clear") {
+    condition = "Foggy";
+  }
+  // Barometric pressure-based conditions (if provided)
+  if (barometric_pressure.has_value()) {
+    if (barometric_pressure.value() < 1000) {
+      condition = "Low Pressure";
+    } else if (barometric_pressure.value() > 1020) {
+      condition = "High Pressure";
+    }
+  }
+  return condition;
+}
+
 }  // namespace
 
 namespace esphome {
@@ -181,14 +222,13 @@ PacketType WeatherStation::check_packet_(const uint8_t *data, size_t len) {
 
 void WeatherStation::process_packet_(const uint8_t *data, size_t len, bool has_pressure,
                                      const std::chrono::steady_clock::time_point &now) {
+  float pressure = NAN;
 #ifdef USE_SENSOR
   if (this->pressure_sensor_ != nullptr) {
     if (has_pressure) {
-      uint32_t pressure = (((uint32_t) data[17]) << 16) + (((uint32_t) data[18]) << 8) + data[19];
-      this->pressure_sensor_->publish_state(pressure / 100.0f);
-    } else {
-      this->pressure_sensor_->publish_state(NAN);
+      pressure = ((((uint32_t) data[17]) << 16) + (((uint32_t) data[18]) << 8) + data[19]) / 100.0f;
     }
+    this->pressure_sensor_->publish_state(pressure);
   }
 #endif  // USE_SENSOR
 #ifdef USE_SENSOR
@@ -216,34 +256,24 @@ void WeatherStation::process_packet_(const uint8_t *data, size_t len, bool has_p
   bool low_battery = (data[3] & 0x08) != 0;
   this->battery_level_binary_sensor_->publish_state(low_battery);
 #endif  // USE_BINARY_SENSOR
+  uint16_t tmp_val = data[4] + (((uint16_t) (data[3] & 0x07)) << 8);
+  float temperature = (tmp_val != 0x7FF) ?  (tmp_val - 400) / 10.0 : NAN;
 #ifdef USE_SENSOR
   if (this->temperature_sensor_ != nullptr) {
-    uint16_t temperature = data[4] + (((uint16_t) (data[3] & 0x07)) << 8);
-    if (temperature != 0x7FF) {
-      this->temperature_sensor_->publish_state((temperature - 400) / 10.0);
-    } else {
-      this->temperature_sensor_->publish_state(NAN);
-    }
+    this->temperature_sensor_->publish_state(temperature);
   }
 #endif  // USE_SENSOR
+  uint8_t humidity = data[5];
 #ifdef USE_SENSOR
   if (this->humidity_sensor_ != nullptr) {
-    uint8_t humidity = data[5];
-    if (humidity != 0xFF) {
-      this->humidity_sensor_->publish_state(humidity);
-    } else {
-      this->humidity_sensor_->publish_state(NAN);
-    }
+    this->humidity_sensor_->publish_state(humidity);
   }
 #endif  // USE_SENSOR
+  uint16_t wind_speed_val = data[6] + (((uint16_t) (data[3] & 0x10)) << 4);
+  float wind_speed = (wind_speed_val != 0x1FF) ? wind_speed_val / 8.0 * 1.12 : NAN;
 #ifdef USE_SENSOR
   if (this->wind_speed_sensor_ != nullptr) {
-    uint16_t wind_speed = data[6] + (((uint16_t) (data[3] & 0x10)) << 4);
-    if (wind_speed != 0x1FF) {
-      this->wind_speed_sensor_->publish_state(wind_speed / 8.0 * 1.12);
-    } else {
-      this->wind_speed_sensor_->publish_state(NAN);
-    }
+    this->wind_speed_sensor_->publish_state(wind_speed);
   }
 #endif  // USE_SENSOR
 #ifdef USE_TEXT_SENSOR
@@ -316,14 +346,11 @@ void WeatherStation::process_packet_(const uint8_t *data, size_t len, bool has_p
     }
   }
 #endif  // USE_SENSOR
+  uint32_t light_val = (data[14] + (data[13] << 8) + (data[12] << 16));
+  float light = (light_val != 0xFFFFFF) ? light_val / 10.0 : NAN;
 #ifdef USE_SENSOR
   if (this->light_sensor_ != nullptr) {
-    uint32_t light = (data[14] + (data[13] << 8) + (data[12] << 16));
-    if (light != 0xFFFFFF) {
-      this->light_sensor_->publish_state(light / 10.0);
-    } else {
-      this->light_sensor_->publish_state(NAN);
-    }
+    this->light_sensor_->publish_state(light);
   }
 #endif  // USE_SENSOR
 #ifdef USE_TEXT_SENSOR
@@ -336,7 +363,11 @@ void WeatherStation::process_packet_(const uint8_t *data, size_t len, bool has_p
     }
   }
 #endif  // USE_TEXT_SENSOR
+#ifdef USE_TEXT_SENSOR
+  if (this->weather_conditions_text_sensor_ != nullptr) {
+    this->weather_conditions_text_sensor_->publish_state(get_weather_condition(temperature, precipitation_intensity, wind_speed, light, humidity, pressure));
+  }
 }
-
+#endif  // USE_TEXT_SENSOR
 }  // namespace misol_weather
 }  // namespace esphome

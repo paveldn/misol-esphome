@@ -77,3 +77,5 @@ text_sensor:
       name: ${device_name} Light Text
     precipitation_intensity:
       name: ${device_name} Precipitation Intensity Text
+    weather_conditions:
+      name: ${device_name} Weather Conditions

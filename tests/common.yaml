@@ -53,3 +53,5 @@ text_sensor:
       name: Weather station Light Text
     precipitation_intensity:
       name: Weather station Precipitation Intensity Text
+    weather_conditions:
+      name: Weather station Weather Conditions Text

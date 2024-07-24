@@ -44,6 +44,7 @@ class WeatherStation : public Component, public uart::UARTDevice {
   SUB_TEXT_SENSOR(wind_speed)
   SUB_TEXT_SENSOR(light)
   SUB_TEXT_SENSOR(precipitation_intensity)
+  SUB_TEXT_SENSOR(weather_conditions)
   void set_north_correction(int north_correction) { this->north_correction_ = north_correction; };
   void set_secondary_intercardinal_direction(bool three_letter_direction) { this->secondary_intercardinal_direction_ = three_letter_direction; };
 #endif
@@ -66,7 +67,7 @@ class WeatherStation : public Component, public uart::UARTDevice {
 #if defined(USE_SENSOR) || defined(USE_TEXT_SENSOR)
   std::chrono::milliseconds precipitation_intensity_interval_{std::chrono::minutes(5)};
   std::chrono::steady_clock::time_point previous_precipitation_timestamp_;
-  optional<uint16_t> previous_precipitation_{};
+  esphome::optional<uint16_t> previous_precipitation_{};
 #endif  // USE_SENSOR || USE_TEXT_SENSOR
 #ifdef USE_TEXT_SENSOR
   int north_correction_{0};

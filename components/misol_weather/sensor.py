@@ -33,16 +33,16 @@ from . import (
 
 CODEOWNERS = ["@paveldn"]
 
-UNIT_METER_PER_SECOND = "m/s"
-CONF_WIND_GUST = "wind_gust"
 CONF_ACCUMULATED_PRECIPITATION = "accumulated_precipitation"
 CONF_PRECIPITATION_INTENSITY = "precipitation_intensity"
-UNIT_MILLIMETERS = "mm"
-CONF_UV_INTENSITY = "uv_intensity"
-UNIT_ULTRAVIOLET_INTENSITY = "mW/m²"
-ICON_SUN_WIRELESS = "mdi:sun-wireless-outline"
 CONF_UV_INDEX = "uv_index"
+CONF_UV_INTENSITY = "uv_intensity"
+CONF_WIND_GUST = "wind_gust"
+ICON_SUN_WIRELESS = "mdi:sun-wireless-outline"
+UNIT_METER_PER_SECOND = "m/s"
+UNIT_MILLIMETERS = "mm"
 UNIT_MILLIMETERS_PER_HOUR = "mm/h"
+UNIT_ULTRAVIOLET_INTENSITY = "mW/m²"
 
 TYPES = [
     CONF_TEMPERATURE,
