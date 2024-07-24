@@ -82,16 +82,22 @@ std::string angle_to_compass_direction(float angle, bool use_3_letter_direction 
   return directions[index * (1 + correction)];
 }
 
-std::string get_weather_condition(float temperature, float rain_intensity, float wind_strength, float solar_light_level, float humidity, esphome::optional<float> barometric_pressure = {}) {
+std::string get_weather_condition(float temperature, float rain_intensity, float wind_strength, float solar_light_level, float humidity) {
   std::string condition = "Clear";
   // Temperature-based conditions
-  if (temperature > 30) {
-    condition = "Hot";
-  } else if (temperature < 0) {
-    condition = "Freezing";
+  if (!std::isnan(temperature)) {
+    if (temperature > 30) {
+      condition = "Hot";
+    } else if (temperature < 0) {
+      condition = "Freezing";
+    }
   }
+  // Wind strength-based conditions
+  if (!std::isnan(wind_strength) && (wind_strength > 25)) {
+    condition = "Windy";
+  }  
   // Rain intensity-based conditions
-  if (rain_intensity > 0) {
+  if (!std::isnan(rain_intensity) && (rain_intensity > 0)) {
     if (rain_intensity < 2.5) {
         condition = "Light Rain";
     } else if (rain_intensity < 7.6) {
@@ -100,25 +106,13 @@ std::string get_weather_condition(float temperature, float rain_intensity, float
         condition = "Heavy Rain";
     }
   }
-  // Wind strength-based conditions
-  if (wind_strength > 25) {
-    condition = "Windy";
-  }
   // Solar light level-based conditions
-  if (solar_light_level < 2000 && condition == "Clear") {
+  if (!std::isnan(solar_light_level) && (solar_light_level < 2000) && (condition == "Clear")) {
     condition = "Cloudy";
   }
   // Humidity-based conditions
-  if (humidity > 90 && condition == "Clear") {
+  if (!std::isnan(humidity) && (humidity > 90) && (condition == "Clear")) {
     condition = "Foggy";
-  }
-  // Barometric pressure-based conditions (if provided)
-  if (barometric_pressure.has_value()) {
-    if (barometric_pressure.value() < 1000) {
-      condition = "Low Pressure";
-    } else if (barometric_pressure.value() > 1020) {
-      condition = "High Pressure";
-    }
   }
   return condition;
 }
@@ -222,13 +216,14 @@ PacketType WeatherStation::check_packet_(const uint8_t *data, size_t len) {
 
 void WeatherStation::process_packet_(const uint8_t *data, size_t len, bool has_pressure,
                                      const std::chrono::steady_clock::time_point &now) {
-  float pressure = NAN;
 #ifdef USE_SENSOR
   if (this->pressure_sensor_ != nullptr) {
     if (has_pressure) {
-      pressure = ((((uint32_t) data[17]) << 16) + (((uint32_t) data[18]) << 8) + data[19]) / 100.0f;
+      float pressure = ((((uint32_t) data[17]) << 16) + (((uint32_t) data[18]) << 8) + data[19]) / 100.0f;
+      this->pressure_sensor_->publish_state(pressure);
+    } else {
+      this->pressure_sensor_->publish_state(NAN);
     }
-    this->pressure_sensor_->publish_state(pressure);
   }
 #endif  // USE_SENSOR
 #ifdef USE_SENSOR
@@ -365,7 +360,7 @@ void WeatherStation::process_packet_(const uint8_t *data, size_t len, bool has_p
 #endif  // USE_TEXT_SENSOR
 #ifdef USE_TEXT_SENSOR
   if (this->weather_conditions_text_sensor_ != nullptr) {
-    this->weather_conditions_text_sensor_->publish_state(get_weather_condition(temperature, precipitation_intensity, wind_speed, light, humidity, pressure));
+    this->weather_conditions_text_sensor_->publish_state(get_weather_condition(temperature, precipitation_intensity, wind_speed, light, humidity));
   }
 }
 #endif  // USE_TEXT_SENSOR
