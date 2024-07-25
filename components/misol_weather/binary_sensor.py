@@ -57,11 +57,11 @@ async def to_code(config):
     paren = await cg.get_variable(config[CONF_MISOL_ID])
 
     if conf := config.get(CONF_BATTERY_LEVEL):
-        sens = await binary_sensor.new_binary_sensor(conf)
-        cg.add(paren.set_battery_level_binary_sensor(sens))
+        bat_sens = await binary_sensor.new_binary_sensor(conf)
+        cg.add(paren.set_battery_level_binary_sensor(bat_sens))
     if conf := config.get(CONF_NIGHT):
-        sens = await binary_sensor.new_binary_sensor(conf)
-        cg.add(paren.set_night_binary_sensor(sens))
+        night_sens = await binary_sensor.new_binary_sensor(conf)
+        cg.add(paren.set_night_binary_sensor(night_sens))
         if threshold := conf.get(CONF_THRESHOLD):
             if isinstance(threshold, float):
                 cg.add(paren.set_upper_night_threshold(threshold))

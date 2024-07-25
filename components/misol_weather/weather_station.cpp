@@ -263,7 +263,9 @@ void WeatherStation::process_packet_(const uint8_t *data, size_t len, bool has_p
 #endif  // USE_TEXT_SENSOR
 #ifdef USE_BINARY_SENSOR
   bool low_battery = (data[3] & 0x08) != 0;
-  this->battery_level_binary_sensor_->publish_state(low_battery);
+  if (this->battery_level_binary_sensor_ != nullptr) {
+    this->battery_level_binary_sensor_->publish_state(low_battery);
+  }
 #endif  // USE_BINARY_SENSOR
   uint16_t tmp_val = data[4] + (((uint16_t) (data[3] & 0x07)) << 8);
   float temperature = (tmp_val != 0x7FF) ?  (tmp_val - 400) / 10.0 : NAN;
