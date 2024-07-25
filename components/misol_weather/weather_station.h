@@ -38,6 +38,9 @@ class WeatherStation : public Component, public uart::UARTDevice {
 #endif
 #ifdef USE_BINARY_SENSOR
   SUB_BINARY_SENSOR(battery_level)
+  SUB_BINARY_SENSOR(night)
+  void set_upper_night_threshold(float upper_night_threshold) { this->upper_night_threshold_ = upper_night_threshold; };
+  void set_lower_night_threshold(float lower_night_threshold) { this->lower_night_threshold_ = lower_night_threshold; };
 #endif
 #ifdef USE_TEXT_SENSOR
   SUB_TEXT_SENSOR(wind_direction)
@@ -73,7 +76,10 @@ class WeatherStation : public Component, public uart::UARTDevice {
   int north_correction_{0};
   bool secondary_intercardinal_direction_{false};
 #endif
-
+#ifdef USE_BINARY_SENSOR
+  float upper_night_threshold_{5.5};
+  float lower_night_threshold_{4.5};
+#endif // USE_BINARY_SENSOR
 };
 
 }  // namespace misol_weather

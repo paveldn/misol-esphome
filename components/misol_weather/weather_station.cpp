@@ -117,6 +117,20 @@ std::string get_weather_condition(float temperature, float rain_intensity, float
   return condition;
 }
 
+bool detect_night(float uv_intensity, float lower_threshold, float upper_threshold) {
+  static bool previous_result = false;
+  static bool first_run = true;
+  bool result = false;
+  if (first_run) {
+    result = uv_intensity < ((lower_threshold + upper_threshold) / 2.0f);
+    first_run = false;
+  } else {
+    result = previous_result ? (uv_intensity < upper_threshold) : (uv_intensity < lower_threshold);
+  }
+  previous_result = result;
+  return result;
+}
+
 }  // namespace
 
 namespace esphome {
@@ -323,24 +337,27 @@ void WeatherStation::process_packet_(const uint8_t *data, size_t len, bool has_p
     this->precipitation_intensity_text_sensor_->publish_state(precipitation_to_description(precipitation_intensity));
   }
 #endif  // USE_TEXT_SENSOR
+  unsigned int uv_intensity_val = data[11] + (((uint16_t) data[10]) << 8);
+  float uv_intensity = (uv_intensity_val != 0xFFFF) ? uv_intensity_val / 10.0 : NAN;
 #ifdef USE_SENSOR
-  unsigned int uv_intensity = data[11] + (((uint16_t) data[10]) << 8);
   if (this->uv_intensity_sensor_ != nullptr) {
-    if (uv_intensity != 0xFFFF) {
-      this->uv_intensity_sensor_->publish_state(uv_intensity / 10.0f);
-    } else {
-      this->uv_intensity_sensor_->publish_state(NAN);
-    }
+    this->uv_intensity_sensor_->publish_state(uv_intensity);
   }
   if (this->uv_index_sensor_ != nullptr) {
-    if (uv_intensity != 0xFFFF) {
-      uint8_t uv_index = uv_intensity / 400;
+    if (!std::isnan(uv_intensity)) {
+      uint8_t uv_index = uv_intensity_val / 400;
       this->uv_index_sensor_->publish_state(uv_index);
     } else {
       this->uv_index_sensor_->publish_state(NAN);
     }
   }
 #endif  // USE_SENSOR
+#ifdef USE_BINARY_SENSOR
+  if ((this->night_binary_sensor_ != nullptr) && !std::isnan(uv_intensity)) {
+    bool night = detect_night(uv_intensity, this->lower_night_threshold_, this->upper_night_threshold_);
+    this->night_binary_sensor_->publish_state(night);
+  }
+#endif  // USE_BINARY_SENSOR
   uint32_t light_val = (data[14] + (data[13] << 8) + (data[12] << 16));
   float light = (light_val != 0xFFFFFF) ? light_val / 10.0 : NAN;
 #ifdef USE_SENSOR

@@ -64,6 +64,11 @@ binary_sensor:
   - platform: misol_weather
     battery_level:
       name: ${device_name} Battery Level
+    night:
+      name: ${device_name} Night
+      threshold:
+        upper: 5.5
+        lower: 4.5
 
 text_sensor:
   - platform: misol_weather

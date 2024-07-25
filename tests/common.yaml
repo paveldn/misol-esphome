@@ -40,6 +40,11 @@ binary_sensor:
   - platform: misol_weather
     battery_level:
       name: Weather station Battery Level
+    night:
+      name: Weather station Night
+      threshold:
+        upper: 5.5
+        lower: 4.5
 
 text_sensor:
   - platform: misol_weather
