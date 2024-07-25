@@ -107,7 +107,7 @@ std::string get_weather_condition(float temperature, float rain_intensity, float
     }
   }
   // Solar light level-based conditions
-  if (!std::isnan(solar_light_level) && (solar_light_level < 2000) && (condition == "Clear")) {
+  if (!std::isnan(solar_light_level) && (solar_light_level < 25000) && (condition == "Clear")) {
     condition = "Cloudy";
   }
   // Humidity-based conditions
