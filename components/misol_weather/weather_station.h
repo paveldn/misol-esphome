@@ -1,10 +1,13 @@
 #pragma once
 
-#include <chrono>
+#include <cstdint>
 #include <vector>
-#include "esphome/core/component.h"
+
 #include "esphome/components/uart/uart.h"
+#include "esphome/core/component.h"
+
 #include "protocol.h"
+
 #ifdef USE_SENSOR
 #include "esphome/components/sensor/sensor.h"
 #endif
@@ -12,8 +15,7 @@
 #include "esphome/components/binary_sensor/binary_sensor.h"
 #endif
 
-namespace esphome {
-namespace misol_weather {
+namespace esphome::misol_weather {
 
 class WeatherStation : public Component, public uart::UARTDevice {
 #ifdef USE_SENSOR
@@ -38,14 +40,14 @@ class WeatherStation : public Component, public uart::UARTDevice {
   void loop() override;
 
  protected:
-  void process_rx_buffer_(const std::chrono::steady_clock::time_point &now);
-  void process_packet_(const protocol::WeatherPacket &packet, const std::chrono::steady_clock::time_point &now);
+  void process_rx_buffer_(uint32_t now);
+  void process_packet_(const protocol::WeatherPacket &packet);
   void reset_sub_entities_();
+
   bool first_data_received_{false};
   std::vector<uint8_t> rx_buffer_;
-  std::chrono::steady_clock::time_point last_rx_byte_time_;
-  std::chrono::steady_clock::time_point last_packet_time_;
+  uint32_t last_rx_byte_time_{0};
+  uint32_t last_packet_time_{0};
 };
 
-}  // namespace misol_weather
-}  // namespace esphome
+}  // namespace esphome::misol_weather

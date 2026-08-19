@@ -2,9 +2,7 @@
 
 #include <cmath>
 
-namespace esphome {
-namespace misol_weather {
-namespace protocol {
+namespace esphome::misol_weather::protocol {
 
 namespace {
 
@@ -88,6 +86,4 @@ bool parse_packet(const uint8_t *data, size_t len, WeatherPacket *packet) {
   return true;
 }
 
-}  // namespace protocol
-}  // namespace misol_weather
-}  // namespace esphome
+}  // namespace esphome::misol_weather::protocol

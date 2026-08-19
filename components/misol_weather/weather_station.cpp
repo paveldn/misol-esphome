@@ -1,24 +1,37 @@
-#include "esphome/components/uart/uart.h"
-#include "esphome/core/helpers.h"
 #include "weather_station.h"
-#include "protocol.h"
 
-namespace esphome {
-namespace misol_weather {
+#include "esphome/core/helpers.h"
+
+namespace esphome::misol_weather {
 
 static const char *const TAG = "misol_weather";
-constexpr std::chrono::milliseconds COMMUNICATION_TIMEOUT = std::chrono::minutes(2);
-constexpr std::chrono::milliseconds PACKET_GAP_TIMEOUT = std::chrono::milliseconds(50);
-constexpr size_t MAX_RX_BUFFER_SIZE = protocol::PRESSURE_PACKET_SIZE * 3;
+static constexpr uint32_t COMMUNICATION_TIMEOUT_MS = 2 * 60 * 1000;
+static constexpr uint32_t PACKET_GAP_TIMEOUT_MS = 50;
+static constexpr size_t MAX_RX_BUFFER_SIZE = protocol::PRESSURE_PACKET_SIZE * 3;
 
 void WeatherStation::dump_config() {
   ESP_LOGCONFIG(TAG, "Misol Weather Station:");
   this->check_uart_settings(9600);
+#ifdef USE_SENSOR
+  LOG_SENSOR("  ", "Temperature", this->temperature_sensor_);
+  LOG_SENSOR("  ", "Humidity", this->humidity_sensor_);
+  LOG_SENSOR("  ", "Pressure", this->pressure_sensor_);
+  LOG_SENSOR("  ", "Wind Speed", this->wind_speed_sensor_);
+  LOG_SENSOR("  ", "Wind Gust", this->wind_gust_sensor_);
+  LOG_SENSOR("  ", "Wind Direction Degrees", this->wind_direction_degrees_sensor_);
+  LOG_SENSOR("  ", "Accumulated Precipitation", this->accumulated_precipitation_sensor_);
+  LOG_SENSOR("  ", "UV Intensity", this->uv_intensity_sensor_);
+  LOG_SENSOR("  ", "UV Index", this->uv_index_sensor_);
+  LOG_SENSOR("  ", "Light", this->light_sensor_);
+#endif
+#ifdef USE_BINARY_SENSOR
+  LOG_BINARY_SENSOR("  ", "Battery Level", this->battery_level_binary_sensor_);
+#endif
 }
 
 void WeatherStation::loop() {
-  std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now();
-  if (this->first_data_received_ && (now - this->last_packet_time_ > COMMUNICATION_TIMEOUT)) {
+  const uint32_t now = millis();
+  if (this->first_data_received_ && now - this->last_packet_time_ > COMMUNICATION_TIMEOUT_MS) {
     ESP_LOGW(TAG, "Communication timeout");
     this->first_data_received_ = false;
     this->reset_sub_entities_();
@@ -58,7 +71,7 @@ void WeatherStation::reset_sub_entities_() {
 #endif  // USE_SENSOR
 }
 
-void WeatherStation::process_rx_buffer_(const std::chrono::steady_clock::time_point &now) {
+void WeatherStation::process_rx_buffer_(uint32_t now) {
   size_t attempts_remaining = this->rx_buffer_.size();
   while (!this->rx_buffer_.empty()) {
     if (attempts_remaining == 0) {
@@ -97,7 +110,7 @@ void WeatherStation::process_rx_buffer_(const std::chrono::steady_clock::time_po
     }
 
     if (type == protocol::PacketType::BASIC && this->rx_buffer_.size() < protocol::PRESSURE_PACKET_SIZE &&
-        now - this->last_rx_byte_time_ < PACKET_GAP_TIMEOUT) {
+        now - this->last_rx_byte_time_ < PACKET_GAP_TIMEOUT_MS) {
       break;
     }
 
@@ -109,7 +122,7 @@ void WeatherStation::process_rx_buffer_(const std::chrono::steady_clock::time_po
                format_hex_pretty(this->rx_buffer_.data(), packet_size).c_str());
       this->first_data_received_ = true;
       this->last_packet_time_ = now;
-      this->process_packet_(packet, now);
+      this->process_packet_(packet);
     }
     this->rx_buffer_.erase(this->rx_buffer_.begin(), this->rx_buffer_.begin() + packet_size);
   }
@@ -120,8 +133,7 @@ void WeatherStation::process_rx_buffer_(const std::chrono::steady_clock::time_po
   }
 }
 
-void WeatherStation::process_packet_(const protocol::WeatherPacket &packet,
-                                     const std::chrono::steady_clock::time_point &now) {
+void WeatherStation::process_packet_(const protocol::WeatherPacket &packet) {
 #ifdef USE_SENSOR
   if (this->pressure_sensor_ != nullptr) {
     this->pressure_sensor_->publish_state(packet.pressure);
@@ -163,5 +175,4 @@ void WeatherStation::process_packet_(const protocol::WeatherPacket &packet,
 #endif  // USE_BINARY_SENSOR
 }
 
-}  // namespace misol_weather
-}  // namespace esphome
+}  // namespace esphome::misol_weather

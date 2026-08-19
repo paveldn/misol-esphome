@@ -23,12 +23,13 @@ CONFIG_SCHEMA = cv.All(
             ),
         }
     ),
+    cv.has_at_least_one_key(CONF_BATTERY_LEVEL),
 )
 
 
 async def to_code(config):
-    paren = await cg.get_variable(config[CONF_MISOL_ID])
+    parent = await cg.get_variable(config[CONF_MISOL_ID])
 
     if conf := config.get(CONF_BATTERY_LEVEL):
-        bat_sens = await binary_sensor.new_binary_sensor(conf)
-        cg.add(paren.set_battery_level_binary_sensor(bat_sens))
+        sens = await binary_sensor.new_binary_sensor(conf)
+        cg.add(parent.set_battery_level_binary_sensor(sens))

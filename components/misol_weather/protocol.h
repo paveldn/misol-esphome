@@ -4,9 +4,7 @@
 #include <cstdint>
 #include <cmath>
 
-namespace esphome {
-namespace misol_weather {
-namespace protocol {
+namespace esphome::misol_weather::protocol {
 
 static constexpr uint8_t PACKET_HEADER = 0x24;
 static constexpr size_t BASIC_PACKET_SIZE = 17;
@@ -38,6 +36,4 @@ size_t find_packet_header(const uint8_t *data, size_t len, size_t start = 0);
 PacketType detect_packet_type(const uint8_t *data, size_t len);
 bool parse_packet(const uint8_t *data, size_t len, WeatherPacket *packet);
 
-}  // namespace protocol
-}  // namespace misol_weather
-}  // namespace esphome
+}  // namespace esphome::misol_weather::protocol

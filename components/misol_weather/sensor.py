@@ -118,13 +118,14 @@ CONFIG_SCHEMA = cv.All(
             ),
         }
     ),
+    cv.has_at_least_one_key(*TYPES),
 )
 
 
 async def to_code(config):
-    paren = await cg.get_variable(config[CONF_MISOL_ID])
+    parent = await cg.get_variable(config[CONF_MISOL_ID])
 
     for key in TYPES:
         if sensor_config := config.get(key):
             sens = await sensor.new_sensor(sensor_config)
-            cg.add(getattr(paren, f"set_{key}_sensor")(sens))
+            cg.add(getattr(parent, f"set_{key}_sensor")(sens))
