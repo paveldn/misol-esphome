@@ -1,6 +1,7 @@
 substitutions:
   device_name: Weather station
   device_id: weather_station
+  precipitation_intensity_interval: 5min
   tx_pin: GPIO17
   rx_pin: GPIO16
 

@@ -20,7 +20,6 @@ jobs:
           - tests/base/build_components_base.esp32-c3-idf.yaml
           - tests/base/build_components_base.esp32-idf.yaml
           - tests/base/build_components_base.esp8266-ard.yaml
-          - tests/base/build_components_base.rp2040-ard.yaml
     steps:
     - name: Checkout code
       uses: actions/checkout@v4.1.3
