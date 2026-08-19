@@ -12,7 +12,6 @@ from esphome.const import (
     DEVICE_CLASS_HUMIDITY,
     DEVICE_CLASS_ILLUMINANCE,
     DEVICE_CLASS_PRECIPITATION,
-    DEVICE_CLASS_PRECIPITATION_INTENSITY,
     DEVICE_CLASS_TEMPERATURE,
     DEVICE_CLASS_WIND_SPEED,
     ICON_SIGN_DIRECTION,
@@ -33,14 +32,12 @@ from . import (
 CODEOWNERS = ["@paveldn"]
 
 CONF_ACCUMULATED_PRECIPITATION = "accumulated_precipitation"
-CONF_PRECIPITATION_INTENSITY = "precipitation_intensity"
 CONF_UV_INDEX = "uv_index"
 CONF_UV_INTENSITY = "uv_intensity"
 CONF_WIND_GUST = "wind_gust"
 ICON_SUN_WIRELESS = "mdi:sun-wireless-outline"
 UNIT_METER_PER_SECOND = "m/s"
 UNIT_MILLIMETERS = "mm"
-UNIT_MILLIMETERS_PER_HOUR = "mm/h"
 UNIT_ULTRAVIOLET_INTENSITY = "mW/m²"
 
 TYPES = [
@@ -51,7 +48,6 @@ TYPES = [
     CONF_WIND_DIRECTION_DEGREES,
     CONF_WIND_GUST,
     CONF_ACCUMULATED_PRECIPITATION,
-    CONF_PRECIPITATION_INTENSITY,
     CONF_LIGHT,
     CONF_UV_INTENSITY,
     CONF_UV_INDEX,
@@ -102,12 +98,6 @@ CONFIG_SCHEMA = cv.All(
                 accuracy_decimals=1,
                 device_class=DEVICE_CLASS_PRECIPITATION,
                 state_class=STATE_CLASS_TOTAL_INCREASING,
-            ),
-            cv.Optional(CONF_PRECIPITATION_INTENSITY): sensor.sensor_schema(
-                unit_of_measurement=UNIT_MILLIMETERS_PER_HOUR,
-                accuracy_decimals=2,
-                device_class=DEVICE_CLASS_PRECIPITATION_INTENSITY,
-                state_class=STATE_CLASS_MEASUREMENT,
             ),
             cv.Optional(CONF_LIGHT): sensor.sensor_schema(
                 unit_of_measurement=UNIT_LUX,

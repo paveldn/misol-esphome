@@ -29,13 +29,11 @@ Example configuration:
     misol_weather:
       id: weather_station
       uart_id: uart_bus
-      precipitation_intensity_interval: 5min
 
 Configuration variables:
 ------------------------
 
 - **uart_id** (**Required**, `ID <https://esphome.io/guides/configuration-types.html#config-id>`_): The ID of the UART bus to use for communication with the weather station.
-- **precipitation_intensity_interval** (*Optional*, time): The interval used to calculate the precipitation intensity from accumulated precipitation. Defaults to ``5min``.
 
 Sensor
 ------
@@ -66,8 +64,6 @@ Example configuration:
           name: Weather station Wind Gust
         accumulated_precipitation:
           name: Weather station Accumulated 
-        precipitation_intensity:
-          name: Weather station Precipitation Intensity
         light:
           name: Weather station Light
         uv_intensity:
@@ -97,8 +93,6 @@ Configuration variables:
 - **wind_gust** (*Optional*): The wind gust sensor.
   All options from `Sensor <https://esphome.io/components/sensor/index.html#config-sensor>`_.
 - **accumulated_precipitation** (*Optional*): The accumulated precipitation sensor.
-  All options from `Sensor <https://esphome.io/components/sensor/index.html#config-sensor>`_.
-- **precipitation_intensity** (*Optional*): The precipitation intensity sensor.
   All options from `Sensor <https://esphome.io/components/sensor/index.html#config-sensor>`_.
 - **light** (*Optional*): The light sensor.
   All options from `Sensor <https://esphome.io/components/sensor/index.html#config-sensor>`_.
@@ -130,10 +124,11 @@ Configuration variables:
 - **battery_level** (**Required**): The battery level sensor.
   All options from `Binary Sensor <https://esphome.io/components/binary_sensor/index.html#base-binary-sensor-configuration>`_.
 
-Text Sensors
-------------
+Derived Packages
+----------------
 
 Text descriptions are implemented as template packages on top of the numeric sensors. This keeps the Misol component focused on the serial protocol and raw weather station measurements.
+The precipitation intensity sensor is also implemented as a package because it is derived from accumulated precipitation over time.
 
 Example configuration:
 ----------------------
@@ -143,8 +138,10 @@ Example configuration:
     substitutions:
       device_name: Weather station
       device_id: weather_station
+      precipitation_intensity_interval: 5min
 
     packages:
+      precipitation_intensity: !include configs/sensor/precipitation_intensity.yaml
       wind_direction_text: !include configs/text_sensor/wind_direction.yaml
       wind_speed_text: !include configs/text_sensor/wind_speed.yaml
       light_intensity_text: !include configs/text_sensor/light_intensity.yaml
@@ -156,6 +153,7 @@ Configuration variables:
 
 - **device_id** (**Required**): Prefix used by the packages to find sensors such as ``${device_id}_temperature`` and ``${device_id}_wind_speed``.
 - **device_name** (**Required**): Friendly name prefix used by the package text sensors.
+- **precipitation_intensity_interval** (**Required**): Update interval used by the precipitation intensity package.
 
 See Also
 --------

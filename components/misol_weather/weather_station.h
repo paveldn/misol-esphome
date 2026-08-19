@@ -27,17 +27,10 @@ class WeatherStation : public Component, public uart::UARTDevice {
   SUB_SENSOR(uv_intensity)
   SUB_SENSOR(uv_index)
   SUB_SENSOR(light)
-  SUB_SENSOR(precipitation_intensity)
 #endif
 #ifdef USE_BINARY_SENSOR
   SUB_BINARY_SENSOR(battery_level)
-  SUB_BINARY_SENSOR(night)
-  void set_upper_night_threshold(float upper_night_threshold) { this->upper_night_threshold_ = upper_night_threshold; };
-  void set_lower_night_threshold(float lower_night_threshold) { this->lower_night_threshold_ = lower_night_threshold; };
 #endif
-  void set_precipitation_intensity_interval(unsigned int precipitation_intensity_interval) {
-    this->precipitation_intensity_interval_ = std::chrono::minutes(precipitation_intensity_interval);
-  }
 
  public:
   float get_setup_priority() const override { return setup_priority::HARDWARE; }
@@ -52,16 +45,6 @@ class WeatherStation : public Component, public uart::UARTDevice {
   std::vector<uint8_t> rx_buffer_;
   std::chrono::steady_clock::time_point last_rx_byte_time_;
   std::chrono::steady_clock::time_point last_packet_time_;
-  std::chrono::milliseconds precipitation_intensity_interval_{std::chrono::minutes(5)};
-  std::chrono::steady_clock::time_point previous_precipitation_timestamp_;
-  esphome::optional<uint16_t> previous_precipitation_{};
-#ifdef USE_BINARY_SENSOR
-  bool detect_night_(float uv_intensity);
-  bool night_state_{false};
-  bool night_state_initialized_{false};
-  float upper_night_threshold_{5.5};
-  float lower_night_threshold_{4.5};
-#endif  // USE_BINARY_SENSOR
 };
 
 }  // namespace misol_weather

@@ -1,6 +1,7 @@
 substitutions:
   device_name: Weather station
   device_id: weather_station
+  precipitation_intensity_interval: 5min
 
 esphome:
   name: weather_station
@@ -35,7 +36,6 @@ ota:
 web_server:
 
 misol_weather:
-  precipitation_intensity_interval: 5min
 
 sensor:
   - platform: misol_weather
@@ -69,9 +69,6 @@ sensor:
     uv_index:
       id: ${device_id}_uv_index
       name: ${device_name} Ultraviolet Index
-    precipitation_intensity:
-      id: ${device_id}_precipitation_intensity
-      name: ${device_name} Precipitation Intensity
   - platform: dew_point
     name: ${device_name} Dew Point
     id: ${device_id}_dew_point
@@ -82,13 +79,9 @@ binary_sensor:
   - platform: misol_weather
     battery_level:
       name: ${device_name} Battery Level
-    night:
-      name: ${device_name} Night
-      threshold:
-        upper: 5.5
-        lower: 4.5
 
 packages:
+  precipitation_intensity: !include configs/sensor/precipitation_intensity.yaml
   wind_direction_text: !include configs/text_sensor/wind_direction.yaml
   wind_speed_text: !include configs/text_sensor/wind_speed.yaml
   light_intensity_text: !include configs/text_sensor/light_intensity.yaml

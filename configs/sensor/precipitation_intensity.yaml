@@ -1,0 +1,36 @@
+sensor:
+  - platform: template
+    name: ${device_name} Precipitation Intensity
+    id: ${device_id}_precipitation_intensity
+    unit_of_measurement: mm/h
+    device_class: precipitation_intensity
+    state_class: measurement
+    accuracy_decimals: 2
+    update_interval: ${precipitation_intensity_interval}
+    lambda: |-
+      static bool initialized = false;
+      static float previous_precipitation = NAN;
+      static uint32_t previous_timestamp = 0;
+
+      if (!id(${device_id}_accumulated_precipitation).has_state()) {
+        return NAN;
+      }
+
+      const float precipitation = id(${device_id}_accumulated_precipitation).state;
+      const uint32_t now = millis();
+      if (!initialized) {
+        initialized = true;
+        previous_precipitation = precipitation;
+        previous_timestamp = now;
+        return NAN;
+      }
+
+      const uint32_t elapsed_ms = now - previous_timestamp;
+      float intensity = NAN;
+      if (precipitation >= previous_precipitation && elapsed_ms > 0) {
+        intensity = (precipitation - previous_precipitation) * 3600000.0f / elapsed_ms;
+      }
+
+      previous_precipitation = precipitation;
+      previous_timestamp = now;
+      return intensity;

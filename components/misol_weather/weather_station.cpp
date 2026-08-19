@@ -55,18 +55,19 @@ void WeatherStation::reset_sub_entities_() {
     this->light_sensor_->publish_state(NAN);
   if (this->uv_index_sensor_ != nullptr)
     this->uv_index_sensor_->publish_state(NAN);
-  if (this->precipitation_intensity_sensor_ != nullptr) {
-    this->precipitation_intensity_sensor_->publish_state(NAN);
-    this->previous_precipitation_.reset();
-  }
 #endif  // USE_SENSOR
-#ifdef USE_BINARY_SENSOR
-  this->night_state_initialized_ = false;
-#endif
 }
 
 void WeatherStation::process_rx_buffer_(const std::chrono::steady_clock::time_point &now) {
-  while (true) {
+  size_t attempts_remaining = this->rx_buffer_.size();
+  while (!this->rx_buffer_.empty()) {
+    if (attempts_remaining == 0) {
+      ESP_LOGW(TAG, "Packet processing limit reached with %u bytes buffered",
+               static_cast<unsigned>(this->rx_buffer_.size()));
+      break;
+    }
+    attempts_remaining--;
+
     size_t header = protocol::find_packet_header(this->rx_buffer_.data(), this->rx_buffer_.size());
     if (header == protocol::HEADER_NOT_FOUND) {
       ESP_LOGW(TAG, "Dropping %u bytes without packet header", static_cast<unsigned>(this->rx_buffer_.size()));
@@ -141,34 +142,8 @@ void WeatherStation::process_packet_(const protocol::WeatherPacket &packet,
     this->wind_gust_sensor_->publish_state(packet.wind_gust);
   }
 
-  bool precipitation_intensity_updated = false;
-  float precipitation_intensity = NAN;
-  if (this->previous_precipitation_.has_value()) {
-    std::chrono::seconds interval =
-        std::chrono::duration_cast<std::chrono::seconds>(now - this->previous_precipitation_timestamp_);
-    if (packet.accumulated_precipitation < this->previous_precipitation_.value()) {
-      ESP_LOGW(TAG, "Precipitation counter reset from %u to %u", this->previous_precipitation_.value(),
-               packet.accumulated_precipitation);
-      this->previous_precipitation_ = packet.accumulated_precipitation;
-      this->previous_precipitation_timestamp_ = now;
-    } else if (interval > this->precipitation_intensity_interval_) {
-      precipitation_intensity =
-          static_cast<float>(packet.accumulated_precipitation - this->previous_precipitation_.value()) * 0.3f /
-          (interval.count() / 3600.0f);
-      this->previous_precipitation_ = packet.accumulated_precipitation;
-      this->previous_precipitation_timestamp_ = now;
-      precipitation_intensity_updated = true;
-    }
-  } else {
-    this->previous_precipitation_ = packet.accumulated_precipitation;
-    this->previous_precipitation_timestamp_ = now;
-  }
-
   if (this->accumulated_precipitation_sensor_ != nullptr) {
     this->accumulated_precipitation_sensor_->publish_state(packet.accumulated_precipitation * 0.3f);
-  }
-  if ((this->precipitation_intensity_sensor_ != nullptr) && precipitation_intensity_updated) {
-    this->precipitation_intensity_sensor_->publish_state(precipitation_intensity);
   }
   if (this->uv_intensity_sensor_ != nullptr) {
     this->uv_intensity_sensor_->publish_state(packet.uv_intensity);
@@ -185,24 +160,8 @@ void WeatherStation::process_packet_(const protocol::WeatherPacket &packet,
   if (this->battery_level_binary_sensor_ != nullptr) {
     this->battery_level_binary_sensor_->publish_state(packet.low_battery);
   }
-  if ((this->night_binary_sensor_ != nullptr) && !std::isnan(packet.uv_intensity)) {
-    this->night_binary_sensor_->publish_state(this->detect_night_(packet.uv_intensity));
-  }
 #endif  // USE_BINARY_SENSOR
 }
-
-#ifdef USE_BINARY_SENSOR
-bool WeatherStation::detect_night_(float uv_intensity) {
-  if (!this->night_state_initialized_) {
-    this->night_state_ = uv_intensity < ((this->lower_night_threshold_ + this->upper_night_threshold_) / 2.0f);
-    this->night_state_initialized_ = true;
-  } else {
-    this->night_state_ =
-        this->night_state_ ? (uv_intensity < this->upper_night_threshold_) : (uv_intensity < this->lower_night_threshold_);
-  }
-  return this->night_state_;
-}
-#endif  // USE_BINARY_SENSOR
 
 }  // namespace misol_weather
 }  // namespace esphome
