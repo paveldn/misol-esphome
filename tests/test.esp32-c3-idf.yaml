@@ -1,4 +1,6 @@
 substitutions:
+  device_name: Weather station
+  device_id: weather_station
   tx_pin: GPIO4
   rx_pin: GPIO5
 

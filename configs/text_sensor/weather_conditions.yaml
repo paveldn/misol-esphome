@@ -7,11 +7,11 @@ text_sensor:
     icon: "mdi:weather-partly-cloudy"
     update_interval: 20s
     lambda: |-
-      auto temperature = id(weather_station_temperature)->state;
-      auto humidity = id(weather_station_humidity)->state;
-      auto wind_strength = id(weather_station_wind_speed)->state;
-      auto rain_intensity = id(weather_station_precipitation_intensity)->state;
-      auto solar_light_level = id(weather_station_light)->state;
+      auto temperature = id(${device_id}_temperature).state;
+      auto humidity = id(${device_id}_humidity).state;
+      auto wind_strength = id(${device_id}_wind_speed).state;
+      auto rain_intensity = id(${device_id}_precipitation_intensity).state;
+      auto solar_light_level = id(${device_id}_light).state;
       std::string condition = "Clear";
       // Temperature-based conditions
       if (!std::isnan(temperature)) {
@@ -44,5 +44,4 @@ text_sensor:
         condition = "Foggy";
       }
       return condition;
-
 

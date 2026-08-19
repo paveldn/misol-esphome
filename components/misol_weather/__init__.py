@@ -9,6 +9,7 @@ CODEOWNERS = ["@paveldn"]
 DEPENDENCIES = ["uart"]
 
 CONF_MISOL_ID = "misol_id"
+CONF_PRECIPITATION_INTENSITY_INTERVAL = "precipitation_intensity_interval"
 
 misol_ns = cg.esphome_ns.namespace("misol_weather")
 WeatherStation = misol_ns.class_("WeatherStation", uart.UARTDevice, cg.Component)
@@ -16,6 +17,9 @@ WeatherStation = misol_ns.class_("WeatherStation", uart.UARTDevice, cg.Component
 CONFIG_SCHEMA = cv.Schema(
     {
         cv.GenerateID(): cv.declare_id(WeatherStation),
+        cv.Optional(
+            CONF_PRECIPITATION_INTENSITY_INTERVAL, default="5min"
+        ): cv.positive_time_period_minutes,
     }
 ).extend(uart.UART_DEVICE_SCHEMA)
 
@@ -35,3 +39,8 @@ async def to_code(config):
     var = cg.new_Pvariable(config[CONF_ID])
     await cg.register_component(var, config)
     await uart.register_uart_device(var, config)
+    cg.add(
+        var.set_precipitation_intensity_interval(
+            config[CONF_PRECIPITATION_INTENSITY_INTERVAL].total_minutes
+        )
+    )

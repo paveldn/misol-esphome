@@ -18,7 +18,6 @@ from esphome.const import (
     ICON_SIGN_DIRECTION,
     ICON_WEATHER_WINDY,
     STATE_CLASS_MEASUREMENT,
-    STATE_CLASS_NONE,
     STATE_CLASS_TOTAL_INCREASING,
     UNIT_CELSIUS,
     UNIT_DEGREES,
@@ -125,7 +124,7 @@ CONFIG_SCHEMA = cv.All(
             cv.Optional(CONF_UV_INDEX): sensor.sensor_schema(
                 icon=ICON_SUN_WIRELESS,
                 accuracy_decimals=0,
-                device_class=STATE_CLASS_NONE,
+                state_class=STATE_CLASS_MEASUREMENT,
             ),
         }
     ),

@@ -1,5 +1,6 @@
 substitutions:
   device_name: Weather station
+  device_id: weather_station
 
 esphome:
   name: weather_station
@@ -7,7 +8,7 @@ esphome:
 
 esp32:
   board: esp32dev
-    
+
 logger:
   level: DEBUG
 
@@ -20,7 +21,7 @@ external_components:
   source:
     type: local
     path: ./components
-  components: [ misol_weather ]
+  components: [misol_weather]
 
 wifi:
   ssid: !secret wifi_ssid
@@ -34,31 +35,48 @@ ota:
 web_server:
 
 misol_weather:
+  precipitation_intensity_interval: 5min
 
 sensor:
   - platform: misol_weather
     temperature:
+      id: ${device_id}_temperature
       name: ${device_name} Temperature
     humidity:
+      id: ${device_id}_humidity
       name: ${device_name} Humidity
     pressure:
+      id: ${device_id}_pressure
       name: ${device_name} Pressure
     wind_speed:
+      id: ${device_id}_wind_speed
       name: ${device_name} Wind Speed
     wind_direction_degrees:
+      id: ${device_id}_wind_direction
       name: ${device_name} Wind Direction
     wind_gust:
+      id: ${device_id}_wind_gust
       name: ${device_name} Wind Gust
     accumulated_precipitation:
-      name: ${device_name} Accumulated Precipitation 
+      id: ${device_id}_accumulated_precipitation
+      name: ${device_name} Accumulated Precipitation
     light:
+      id: ${device_id}_light
       name: ${device_name} Light
     uv_intensity:
+      id: ${device_id}_uv_intensity
       name: ${device_name} Ultraviolet Intensity
     uv_index:
+      id: ${device_id}_uv_index
       name: ${device_name} Ultraviolet Index
     precipitation_intensity:
+      id: ${device_id}_precipitation_intensity
       name: ${device_name} Precipitation Intensity
+  - platform: dew_point
+    name: ${device_name} Dew Point
+    id: ${device_id}_dew_point
+    temperature: ${device_id}_temperature
+    humidity: ${device_id}_humidity
 
 binary_sensor:
   - platform: misol_weather

@@ -14,26 +14,37 @@ misol_weather:
 sensor:
   - platform: misol_weather
     temperature:
+      id: ${device_id}_temperature
       name: Weather station Temperature
     humidity:
+      id: ${device_id}_humidity
       name: Weather station Humidity
     pressure:
+      id: ${device_id}_pressure
       name: Weather station Pressure
     wind_speed:
+      id: ${device_id}_wind_speed
       name: Weather station Wind Speed
     wind_direction_degrees:
+      id: ${device_id}_wind_direction
       name: Weather station Wind Direction
     wind_gust:
+      id: ${device_id}_wind_gust
       name: Weather station Wind Gust
     accumulated_precipitation:
+      id: ${device_id}_accumulated_precipitation
       name: Weather station Accumulated Precipitation
     light:
+      id: ${device_id}_light
       name: Weather station Light
     uv_intensity:
+      id: ${device_id}_uv_intensity
       name: Weather station Ultraviolet Intensity
     uv_index:
+      id: ${device_id}_uv_index
       name: Weather station Ultraviolet Index
     precipitation_intensity:
+      id: ${device_id}_precipitation_intensity
       name: Weather station Precipitation Intensity
 
 binary_sensor:
@@ -47,8 +58,8 @@ binary_sensor:
         lower: 4.5
 
 packages:
-  wind_direction_text: !include configs/text_sensor/wind_direction.yaml
-  wind_speed_text: !include configs/text_sensor/wind_speed.yaml
-  light_intensity_text: !include configs/text_sensor/light_intensity.yaml
-  precipitation_intensity_text: !include configs/text_sensor/precipitation_intensity.yaml
-  weather_conditions_text: !include configs/text_sensor/weather_conditions.yaml
+  wind_direction_text: !include ../configs/text_sensor/wind_direction.yaml
+  wind_speed_text: !include ../configs/text_sensor/wind_speed.yaml
+  light_intensity_text: !include ../configs/text_sensor/light_intensity.yaml
+  precipitation_intensity_text: !include ../configs/text_sensor/precipitation_intensity.yaml
+  weather_conditions_text: !include ../configs/text_sensor/weather_conditions.yaml

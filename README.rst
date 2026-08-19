@@ -29,11 +29,13 @@ Example configuration:
     misol_weather:
       id: weather_station
       uart_id: uart_bus
+      precipitation_intensity_interval: 5min
 
 Configuration variables:
 ------------------------
 
 - **uart_id** (**Required**, `ID <https://esphome.io/guides/configuration-types.html#config-id>`_): The ID of the UART bus to use for communication with the weather station.
+- **precipitation_intensity_interval** (*Optional*, time): The interval used to calculate the precipitation intensity from accumulated precipitation. Defaults to ``5min``.
 
 Sensor
 ------
@@ -49,8 +51,10 @@ Example configuration:
       - platform: misol_weather
         misol_id: weather_station
         temperature:
+          id: weather_station_temperature
           name: Weather station Temperature
         humidity:
+          id: weather_station_humidity
           name: Weather station Humidity
         pressure:
           name: Weather station Pressure
@@ -70,6 +74,10 @@ Example configuration:
           name: Weather station Ultraviolet Intensity
         uv_index:
           name: Weather station Ultraviolet Index
+      - platform: dew_point
+        name: Weather station Dew Point
+        temperature: weather_station_temperature
+        humidity: weather_station_humidity
 
 
 Configuration variables:
@@ -122,42 +130,32 @@ Configuration variables:
 - **battery_level** (**Required**): The battery level sensor.
   All options from `Binary Sensor <https://esphome.io/components/binary_sensor/index.html#base-binary-sensor-configuration>`_.
 
-Text Sensor
------------
+Text Sensors
+------------
 
-The text sensor platform allows you to get the wind direction in text format.
+Text descriptions are implemented as template packages on top of the numeric sensors. This keeps the Misol component focused on the serial protocol and raw weather station measurements.
 
 Example configuration:
 ----------------------
 
 .. code-block:: yaml
 
-    text_sensor:
-      - platform: misol_weather
-        misol_id: weather_station
-        light:
-          name: Weather station Light Text
-        wind_direction:
-          name: Weather station Wind Direction Text
-          north_correction: 0
-          secondary_intercardinal_direction: true
-        wind_speed:
-          name: Weather station Wind Speed Text
+    substitutions:
+      device_name: Weather station
+      device_id: weather_station
+
+    packages:
+      wind_direction_text: !include configs/text_sensor/wind_direction.yaml
+      wind_speed_text: !include configs/text_sensor/wind_speed.yaml
+      light_intensity_text: !include configs/text_sensor/light_intensity.yaml
+      precipitation_intensity_text: !include configs/text_sensor/precipitation_intensity.yaml
+      weather_conditions_text: !include configs/text_sensor/weather_conditions.yaml
 
 Configuration variables:
 ------------------------
 
-- **misol_id** (**Required**, `ID <https://esphome.io/guides/configuration-types.html#config-id>`_): The ID of the weather station component.
-- **light** (*Optional*): The light sensor in text format.
-  All options from `Text Sensor <https://esphome.io/components/text_sensor/index.html#base-text-sensor-configuration>`_.
-- **wind_direction** (*Optional*): The wind direction sensor in text format.
-
-  - **north_correction** (*Optional*, int): The correction for the north direction in degrees (-180..180) to adjust the wind direction. Default is ``0``.
-  - **secondary_intercardinal_direction** (*Optional*, boolean): If true, the wind direction will be in the intercardinal direction format (example NNE). Default is ``false``.
-
-  All other options from `Text Sensor <https://esphome.io/components/text_sensor/index.html#base-text-sensor-configuration>`_.
-- **wind_speed** (*Optional*): The wind speed sensor in text format.
-  All options from `Text Sensor <https://esphome.io/components/text_sensor/index.html#base-text-sensor-configuration>`_.
+- **device_id** (**Required**): Prefix used by the packages to find sensors such as ``${device_id}_temperature`` and ``${device_id}_wind_speed``.
+- **device_name** (**Required**): Friendly name prefix used by the package text sensors.
 
 See Also
 --------
