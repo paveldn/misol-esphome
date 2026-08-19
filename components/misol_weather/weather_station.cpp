@@ -2,14 +2,14 @@
 #include "esphome/core/helpers.h"
 #include "weather_station.h"
 #include "protocol.h"
-#include <algorithm>
 
 namespace esphome {
 namespace misol_weather {
 
 static const char *const TAG = "misol_weather";
 constexpr std::chrono::milliseconds COMMUNICATION_TIMEOUT = std::chrono::minutes(2);
-constexpr size_t MAX_RX_BUFFER_SIZE = protocol::PRESSURE_PACKET_SIZE * 2;
+constexpr std::chrono::milliseconds PACKET_GAP_TIMEOUT = std::chrono::milliseconds(50);
+constexpr size_t MAX_RX_BUFFER_SIZE = protocol::PRESSURE_PACKET_SIZE * 3;
 
 void WeatherStation::dump_config() {
   ESP_LOGCONFIG(TAG, "Misol Weather Station:");
@@ -26,6 +26,7 @@ void WeatherStation::loop() {
 
   while (this->available() > 0) {
     this->rx_buffer_.push_back(this->read());
+    this->last_rx_byte_time_ = now;
   }
   if (!this->rx_buffer_.empty()) {
     this->process_rx_buffer_(now);
@@ -66,9 +67,15 @@ void WeatherStation::reset_sub_entities_() {
 
 void WeatherStation::process_rx_buffer_(const std::chrono::steady_clock::time_point &now) {
   while (true) {
-    auto header = std::find(this->rx_buffer_.begin(), this->rx_buffer_.end(), protocol::PACKET_HEADER);
-    if (header != this->rx_buffer_.begin()) {
-      this->rx_buffer_.erase(this->rx_buffer_.begin(), header);
+    size_t header = protocol::find_packet_header(this->rx_buffer_.data(), this->rx_buffer_.size());
+    if (header == protocol::HEADER_NOT_FOUND) {
+      ESP_LOGW(TAG, "Dropping %u bytes without packet header", static_cast<unsigned>(this->rx_buffer_.size()));
+      this->rx_buffer_.clear();
+      break;
+    }
+    if (header > 0) {
+      ESP_LOGW(TAG, "Dropping %u bytes before packet header", static_cast<unsigned>(header));
+      this->rx_buffer_.erase(this->rx_buffer_.begin(), this->rx_buffer_.begin() + header);
     }
 
     if (this->rx_buffer_.size() < protocol::BASIC_PACKET_SIZE) {
@@ -79,8 +86,18 @@ void WeatherStation::process_rx_buffer_(const std::chrono::steady_clock::time_po
     if (type == protocol::PacketType::INVALID) {
       ESP_LOGW(TAG, "Dropping invalid packet candidate: %s",
                format_hex_pretty(this->rx_buffer_.data(), protocol::BASIC_PACKET_SIZE).c_str());
-      this->rx_buffer_.erase(this->rx_buffer_.begin());
+      size_t next_header = protocol::find_packet_header(this->rx_buffer_.data(), this->rx_buffer_.size(), 1);
+      if (next_header == protocol::HEADER_NOT_FOUND) {
+        this->rx_buffer_.clear();
+        break;
+      }
+      this->rx_buffer_.erase(this->rx_buffer_.begin(), this->rx_buffer_.begin() + next_header);
       continue;
+    }
+
+    if (type == protocol::PacketType::BASIC && this->rx_buffer_.size() < protocol::PRESSURE_PACKET_SIZE &&
+        now - this->last_rx_byte_time_ < PACKET_GAP_TIMEOUT) {
+      break;
     }
 
     const size_t packet_size =

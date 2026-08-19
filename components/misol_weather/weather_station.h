@@ -50,6 +50,7 @@ class WeatherStation : public Component, public uart::UARTDevice {
   void reset_sub_entities_();
   bool first_data_received_{false};
   std::vector<uint8_t> rx_buffer_;
+  std::chrono::steady_clock::time_point last_rx_byte_time_;
   std::chrono::steady_clock::time_point last_packet_time_;
   std::chrono::milliseconds precipitation_intensity_interval_{std::chrono::minutes(5)};
   std::chrono::steady_clock::time_point previous_precipitation_timestamp_;

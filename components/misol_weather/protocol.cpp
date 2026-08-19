@@ -22,6 +22,19 @@ float value_or_nan(uint32_t value, uint32_t invalid, float scale, float offset =
 
 }  // namespace
 
+size_t find_packet_header(const uint8_t *data, size_t len, size_t start) {
+  if (data == nullptr || start >= len) {
+    return HEADER_NOT_FOUND;
+  }
+
+  for (size_t i = start; i < len; i++) {
+    if (data[i] == PACKET_HEADER) {
+      return i;
+    }
+  }
+  return HEADER_NOT_FOUND;
+}
+
 PacketType detect_packet_type(const uint8_t *data, size_t len) {
   if (len < BASIC_PACKET_SIZE || data[0] != PACKET_HEADER || !checksum_matches(data, 0, 16)) {
     return PacketType::INVALID;
