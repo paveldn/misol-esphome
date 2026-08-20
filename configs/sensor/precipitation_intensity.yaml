@@ -17,6 +17,10 @@ sensor:
       }
 
       const float precipitation = id(${device_id}_accumulated_precipitation).state;
+      if (std::isnan(precipitation)) {
+        return NAN;
+      }
+
       const uint32_t now = millis();
       if (!initialized) {
         initialized = true;
@@ -27,8 +31,12 @@ sensor:
 
       const uint32_t elapsed_ms = now - previous_timestamp;
       float intensity = NAN;
-      if (precipitation >= previous_precipitation && elapsed_ms > 0) {
-        intensity = (precipitation - previous_precipitation) * 3600000.0f / elapsed_ms;
+      if (elapsed_ms > 0) {
+        if (precipitation >= previous_precipitation) {
+          intensity = (precipitation - previous_precipitation) * 3600000.0f / elapsed_ms;
+        } else {
+          intensity = 0.0f;
+        }
       }
 
       previous_precipitation = precipitation;

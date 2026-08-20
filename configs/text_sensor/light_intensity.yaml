@@ -7,23 +7,39 @@ text_sensor:
     icon: "mdi:weather-sunny"
     update_interval: 20s
     lambda: |-
-      const float lux = id(${device_id}_light).state;
-      if (isnan(lux)) {
+      static int previous_level = -1;
+      static constexpr const char *LABELS[] = {
+          "Dark night", "Night", "Twilight", "Very dark day",
+          "Overcast day", "Daylight", "Bright daylight", "Direct sunlight"};
+      static constexpr float THRESHOLDS[] = {
+          1.0f, 10.0f, 100.0f, 1000.0f, 10000.0f, 25000.0f, 100000.0f};
+      static constexpr int LEVEL_COUNT = sizeof(LABELS) / sizeof(LABELS[0]);
+      static constexpr float HYSTERESIS = 0.15f;
+
+      if (!id(${device_id}_light).has_state()) {
         return { "Unknown" };
-      } else if (lux < 1) {
-        return { "Dark night" };
-      } else if (lux < 10) {
-        return { "Night" };
-      } else if (lux < 100) {
-        return { "Twilight" };
-      } else if (lux < 1000) {
-        return { "Very dark day" };
-      } else if (lux < 10000) {
-        return { "Overcast day" };
-      } else if (lux < 25000) {
-        return { "Daylight" };
-      } else if (lux < 100000) {
-        return { "Bright daylight" };
-      } else {
-        return { "Direct sunlight" };
       }
+
+      const float lux = id(${device_id}_light).state;
+      if (std::isnan(lux)) {
+        previous_level = -1;
+        return { "Unknown" };
+      }
+
+      int level = 0;
+      while (level < LEVEL_COUNT - 1 && lux >= THRESHOLDS[level]) {
+        level++;
+      }
+
+      if (previous_level >= 0) {
+        const bool above_lower = previous_level == 0 ||
+                                 lux >= THRESHOLDS[previous_level - 1] * (1.0f - HYSTERESIS);
+        const bool below_upper = previous_level == LEVEL_COUNT - 1 ||
+                                 lux < THRESHOLDS[previous_level] * (1.0f + HYSTERESIS);
+        if (above_lower && below_upper) {
+          level = previous_level;
+        }
+      }
+
+      previous_level = level;
+      return { LABELS[level] };

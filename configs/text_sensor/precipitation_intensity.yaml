@@ -1,5 +1,5 @@
 ﻿# Text sensor for precipitation intensity
-# Depend on the percentage intensity sensor from the misol_weather integration
+# Depends on the precipitation intensity sensor from the template package
 text_sensor:
   - platform: template
     name: "${device_name} Precipitation Intensity Text"
@@ -7,19 +7,36 @@ text_sensor:
     icon: "mdi:weather-pouring"
     update_interval: 20s
     lambda: |-
-      auto mm_per_hour = id(${device_id}_precipitation_intensity).state;
-      if (std::isnan(mm_per_hour)) {
+      static int previous_level = -1;
+      static constexpr const char *LABELS[] = {
+          "No precipitation", "Light rain", "Moderate rain", "Heavy rain", "Violent rain"};
+      static constexpr float THRESHOLDS[] = {0.0f, 2.5f, 7.5f, 50.0f};
+      static constexpr int LEVEL_COUNT = sizeof(LABELS) / sizeof(LABELS[0]);
+
+      if (!id(${device_id}_precipitation_intensity).has_state()) {
         return { "Unknown" };
-      } else if (mm_per_hour <= 0) {
-        return { "No precipitation" };
-      } else if (mm_per_hour > 0 && mm_per_hour <= 2.5) {
-        return { "Light rain" };
-      } else if (mm_per_hour > 2.5 && mm_per_hour <= 7.5) {
-        return { "Moderate rain" };
-      } else if (mm_per_hour > 7.5 && mm_per_hour <= 50) {
-        return { "Heavy rain" };
-      } else if (mm_per_hour > 50) {
-        return { "Violent rain" };
-      } else {
-        return { "Extreme precipitation" };
       }
+
+      const float mm_per_hour = id(${device_id}_precipitation_intensity).state;
+      if (std::isnan(mm_per_hour)) {
+        previous_level = -1;
+        return { "Unknown" };
+      }
+
+      int level = 0;
+      while (level < LEVEL_COUNT - 1 && mm_per_hour > THRESHOLDS[level]) {
+        level++;
+      }
+
+      if (previous_level > 0) {
+        const float lower_threshold = THRESHOLDS[previous_level - 1];
+        const float upper_threshold = previous_level == LEVEL_COUNT - 1 ? INFINITY : THRESHOLDS[previous_level];
+        const float lower_margin = std::max(0.1f, lower_threshold * 0.1f);
+        const float upper_margin = std::max(0.1f, upper_threshold * 0.1f);
+        if (mm_per_hour > lower_threshold - lower_margin && mm_per_hour <= upper_threshold + upper_margin) {
+          level = previous_level;
+        }
+      }
+
+      previous_level = level;
+      return { LABELS[level] };

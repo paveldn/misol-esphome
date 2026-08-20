@@ -1,5 +1,5 @@
-﻿# Text sensor for light intensity
-# Depend on the light sensor from the misol_weather integration
+﻿# Text sensor for weather conditions
+# Depends on temperature, wind, precipitation, light, and UV sensors
 text_sensor:
   - platform: template
     name: "${device_name} Weather Conditions"
@@ -8,76 +8,80 @@ text_sensor:
     update_interval: 20s
     lambda: |-
       const bool has_temperature = id(${device_id}_temperature).has_state();
-      const bool has_humidity = id(${device_id}_humidity).has_state();
       const bool has_wind = id(${device_id}_wind_speed).has_state();
       const bool has_rain = id(${device_id}_precipitation_intensity).has_state();
       const bool has_light = id(${device_id}_light).has_state();
       const bool has_uv = id(${device_id}_uv_intensity).has_state();
 
-      if (!has_temperature && !has_humidity && !has_wind && !has_rain && !has_light && !has_uv) {
+      if (!has_temperature && !has_wind && !has_rain && !has_light && !has_uv) {
         return { "Unknown" };
       }
 
       const float temperature = has_temperature ? id(${device_id}_temperature).state : NAN;
-      const float humidity = has_humidity ? id(${device_id}_humidity).state : NAN;
       const float wind_speed = has_wind ? id(${device_id}_wind_speed).state : NAN;
       const float rain_intensity = has_rain ? id(${device_id}_precipitation_intensity).state : NAN;
       const float lux = has_light ? id(${device_id}_light).state : NAN;
       const float uv = has_uv ? id(${device_id}_uv_intensity).state : NAN;
+      static std::string previous_condition;
+      std::string condition = "Unknown";
 
       if (!std::isnan(rain_intensity) && rain_intensity > 0.0f) {
         if (!std::isnan(temperature) && temperature <= 0.0f) {
-          return { "Wintry Precipitation" };
+          condition = "Wintry Precipitation";
+        } else if (rain_intensity > 50.0f) {
+          condition = "Violent Rain";
+        } else if (rain_intensity > 7.5f) {
+          condition = "Heavy Rain";
+        } else if (rain_intensity > 2.5f) {
+          condition = "Moderate Rain";
+        } else {
+          condition = "Light Rain";
         }
-        if (rain_intensity >= 50.0f) {
-          return { "Violent Rain" };
-        }
-        if (rain_intensity >= 7.6f) {
-          return { "Heavy Rain" };
-        }
-        if (rain_intensity >= 2.5f) {
-          return { "Moderate Rain" };
-        }
-        return { "Light Rain" };
+      } else if (!std::isnan(wind_speed) && wind_speed >= 20.8f) {
+        condition = "Stormy";
+      } else if (!std::isnan(wind_speed) && wind_speed >= 10.8f) {
+        condition = "Windy";
+      } else if ((!std::isnan(lux) && lux < 50.0f) || (std::isnan(lux) && !std::isnan(uv) && uv < 0.2f)) {
+        condition = "Night";
+      } else if ((!std::isnan(lux) && lux >= 50.0f) || (!std::isnan(uv) && uv >= 0.2f)) {
+        condition = "Daytime";
+      } else if (!std::isnan(temperature) && temperature >= 30.0f) {
+        condition = "Hot";
+      } else if (!std::isnan(temperature) && temperature <= 0.0f) {
+        condition = "Freezing";
       }
 
-      if (!std::isnan(humidity) && humidity >= 95.0f &&
-          (std::isnan(wind_speed) || wind_speed <= 3.0f) &&
-          (std::isnan(lux) || lux < 10000.0f)) {
-        return { "Foggy" };
-      }
+      if (!previous_condition.empty() && condition != previous_condition) {
+        const bool keep_light_rain =
+            previous_condition == "Light Rain" && !std::isnan(rain_intensity) &&
+            rain_intensity > 0.0f && rain_intensity <= 2.8f;
+        const bool keep_moderate_rain =
+            previous_condition == "Moderate Rain" && !std::isnan(rain_intensity) &&
+            rain_intensity > 2.2f && rain_intensity <= 8.3f;
+        const bool keep_heavy_rain =
+            previous_condition == "Heavy Rain" && !std::isnan(rain_intensity) &&
+            rain_intensity > 6.8f && rain_intensity <= 55.0f;
+        const bool keep_violent_rain =
+            previous_condition == "Violent Rain" && !std::isnan(rain_intensity) &&
+            rain_intensity > 45.0f;
+        const bool keep_windy =
+            previous_condition == "Windy" && !std::isnan(wind_speed) &&
+            wind_speed >= 10.0f && wind_speed < 21.5f;
+        const bool keep_stormy =
+            previous_condition == "Stormy" && !std::isnan(wind_speed) &&
+            wind_speed >= 19.5f;
+        const bool keep_night =
+            previous_condition == "Night" &&
+            ((!std::isnan(lux) && lux < 80.0f) || (std::isnan(lux) && !std::isnan(uv) && uv < 0.3f));
+        const bool keep_daytime =
+            previous_condition == "Daytime" &&
+            ((!std::isnan(lux) && lux >= 30.0f) || (!std::isnan(uv) && uv >= 0.1f));
 
-      if (!std::isnan(wind_speed)) {
-        if (wind_speed >= 20.8f) {
-          return { "Stormy" };
-        }
-        if (wind_speed >= 10.8f) {
-          return { "Windy" };
-        }
-      }
-
-      const bool likely_night = (!std::isnan(lux) && lux < 50.0f) || (std::isnan(lux) && !std::isnan(uv) && uv < 0.2f);
-      if (likely_night) {
-        return { "Night" };
-      }
-
-      if (!std::isnan(lux)) {
-        if (lux < 4500.0f) {
-          return { "Overcast" };
-        }
-        if (lux < 28500.0f) {
-          return { "Cloudy" };
-        }
-        return { "Clear" };
-      }
-
-      if (!std::isnan(temperature)) {
-        if (temperature >= 30.0f) {
-          return { "Hot" };
-        }
-        if (temperature <= 0.0f) {
-          return { "Freezing" };
+        if (keep_light_rain || keep_moderate_rain || keep_heavy_rain || keep_violent_rain ||
+            keep_windy || keep_stormy || keep_night || keep_daytime) {
+          condition = previous_condition;
         }
       }
 
-      return { "Unknown" };
+      previous_condition = condition;
+      return { condition };

@@ -1,5 +1,5 @@
-﻿# Text sensor for wind direction, with 2 or 3 letter direction names
-# Depend on the wind direction sensor from the misol_weather integration
+﻿# Text sensor for wind direction, with 8-point or 16-point compass directions
+# Depends on the wind direction sensor from the misol_weather integration
 text_sensor:
   - platform: template
     name: "${device_name} Wind Direction Text"
@@ -7,14 +7,43 @@ text_sensor:
     icon: "mdi:compass"
     update_interval: 20s
     lambda: |-
-        // Set next value to true if you want to use 3-letter direction names (NNE, ENE, etc.)
-        const bool use_3_letter_direction = false;
-        const char* directions[] = {"N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE",
-                                    "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"};
-        uint8_t correction = use_3_letter_direction ? 0 : 1;
-        float angle = std::fmod(id(${device_id}_wind_direction).state, 360.0f);
-        if (angle < 0) {
-          angle += 360.0f;
+      static constexpr bool USE_16_DIRECTIONS = false;
+      static constexpr const char *DIRECTIONS_16[] = {
+          "N", "NNE", "NE", "ENE",
+          "E", "ESE", "SE", "SSE",
+          "S", "SSW", "SW", "WSW",
+          "W", "WNW", "NW", "NNW"};
+      static constexpr int STEP = USE_16_DIRECTIONS ? 1 : 2;
+      static constexpr int SECTOR_COUNT = USE_16_DIRECTIONS ? 16 : 8;
+      static constexpr float SECTOR_SIZE = 360.0f / SECTOR_COUNT;
+      static constexpr float HYSTERESIS_DEGREES = 5.0f;
+      static int previous_sector = -1;
+
+      if (!id(${device_id}_wind_direction).has_state()) {
+        return { "Unknown" };
+      }
+
+      float angle = std::fmod(id(${device_id}_wind_direction).state, 360.0f);
+      if (std::isnan(angle)) {
+        previous_sector = -1;
+        return { "Unknown" };
+      }
+      if (angle < 0.0f) {
+        angle += 360.0f;
+      }
+
+      int sector = static_cast<int>((angle + SECTOR_SIZE / 2.0f) / SECTOR_SIZE) % SECTOR_COUNT;
+
+      if (previous_sector >= 0) {
+        const float center = previous_sector * SECTOR_SIZE;
+        float distance = std::fabs(angle - center);
+        if (distance > 180.0f) {
+          distance = 360.0f - distance;
         }
-        int index = static_cast<int>((angle + 11.25 * (1 + correction)) / (22.5 * (1 + correction))) % (8 * (2 - correction));
-        return { directions[index * (1 + correction)] };
+        if (distance <= SECTOR_SIZE / 2.0f + HYSTERESIS_DEGREES) {
+          sector = previous_sector;
+        }
+      }
+
+      previous_sector = sector;
+      return { DIRECTIONS_16[sector * STEP] };

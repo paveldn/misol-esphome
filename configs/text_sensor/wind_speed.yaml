@@ -1,5 +1,5 @@
 ﻿# Text sensor for wind speed
-# Depend on the wind speed sensor from the misol_weather integration
+# Depends on the wind speed sensor from the misol_weather integration
 text_sensor:
   - platform: template
     name: "${device_name} Wind Speed Text"
@@ -7,35 +7,42 @@ text_sensor:
     icon: "mdi:weather-windy"
     update_interval: 20s
     lambda: |-
-      if (id(${device_id}_wind_speed).has_state()) {
-        float wind_speed = id(${device_id}_wind_speed).state;
-        if (wind_speed < 0.5) {
-          return { "Calm" };
-        } else if (wind_speed < 1.5) {
-          return { "Light air" };
-        } else if (wind_speed < 3.3) {
-          return { "Light breeze" };
-        } else if (wind_speed < 5.5) {
-          return { "Gentle breeze" };
-        } else if (wind_speed < 7.9) {
-          return { "Moderate breeze" };
-        } else if (wind_speed < 10.7) {
-          return { "Fresh breeze" };
-        } else if (wind_speed < 13.8) {
-          return { "Strong breeze" };
-        } else if (wind_speed < 17.1) {
-          return { "Moderate gale" };
-        } else if (wind_speed < 20.7) {
-          return { "Fresh gale" };
-        } else if (wind_speed < 24.4) {
-          return { "Strong gale" };
-        } else if (wind_speed < 28.4) {
-          return { "Whole gale" };
-        } else if (wind_speed < 32.6) {
-          return { "Storm" };
-        } else {
-          return { "Hurricane" };
-        }
-      } else {
+      static int previous_level = -1;
+      static constexpr const char *LABELS[] = {
+          "Calm", "Light air", "Light breeze", "Gentle breeze",
+          "Moderate breeze", "Fresh breeze", "Strong breeze",
+          "Near gale", "Gale", "Strong gale", "Storm",
+          "Violent storm", "Hurricane force"};
+      static constexpr float THRESHOLDS[] = {
+          0.5f, 1.5f, 3.3f, 5.5f, 7.9f, 10.7f,
+          13.8f, 17.1f, 20.7f, 24.4f, 28.4f, 32.6f};
+      static constexpr int LEVEL_COUNT = sizeof(LABELS) / sizeof(LABELS[0]);
+      static constexpr float HYSTERESIS = 0.2f;
+
+      if (!id(${device_id}_wind_speed).has_state()) {
         return { "Unknown" };
       }
+
+      const float wind_speed = id(${device_id}_wind_speed).state;
+      if (std::isnan(wind_speed)) {
+        previous_level = -1;
+        return { "Unknown" };
+      }
+
+      int level = 0;
+      while (level < LEVEL_COUNT - 1 && wind_speed >= THRESHOLDS[level]) {
+        level++;
+      }
+
+      if (previous_level >= 0) {
+        const bool above_lower = previous_level == 0 ||
+                                 wind_speed >= THRESHOLDS[previous_level - 1] - HYSTERESIS;
+        const bool below_upper = previous_level == LEVEL_COUNT - 1 ||
+                                 wind_speed < THRESHOLDS[previous_level] + HYSTERESIS;
+        if (above_lower && below_upper) {
+          level = previous_level;
+        }
+      }
+
+      previous_level = level;
+      return { LABELS[level] };
