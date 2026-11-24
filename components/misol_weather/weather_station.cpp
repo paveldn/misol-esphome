@@ -11,7 +11,6 @@ static constexpr size_t MAX_RX_BUFFER_SIZE = protocol::PRESSURE_PACKET_SIZE * 3;
 
 void WeatherStation::dump_config() {
   ESP_LOGCONFIG(TAG, "Misol Weather Station:");
-  this->check_uart_settings(9600);
 #ifdef USE_SENSOR
   LOG_SENSOR("  ", "Temperature", this->temperature_sensor_);
   LOG_SENSOR("  ", "Humidity", this->humidity_sensor_);
@@ -98,8 +97,9 @@ void WeatherStation::process_rx_buffer_(uint32_t now) {
 
     protocol::PacketType type = protocol::detect_packet_type(this->rx_buffer_.data(), this->rx_buffer_.size());
     if (type == protocol::PacketType::INVALID) {
+      char hex_buffer[format_hex_pretty_size(protocol::BASIC_PACKET_SIZE)];
       ESP_LOGW(TAG, "Dropping invalid packet candidate: %s",
-               format_hex_pretty(this->rx_buffer_.data(), protocol::BASIC_PACKET_SIZE).c_str());
+               format_hex_pretty_to(hex_buffer, this->rx_buffer_.data(), protocol::BASIC_PACKET_SIZE));
       size_t next_header = protocol::find_packet_header(this->rx_buffer_.data(), this->rx_buffer_.size(), 1);
       if (next_header == protocol::HEADER_NOT_FOUND) {
         this->rx_buffer_.clear();
@@ -118,8 +118,9 @@ void WeatherStation::process_rx_buffer_(uint32_t now) {
         type == protocol::PacketType::BASIC_WITH_PRESSURE ? protocol::PRESSURE_PACKET_SIZE : protocol::BASIC_PACKET_SIZE;
     protocol::WeatherPacket packet;
     if (protocol::parse_packet(this->rx_buffer_.data(), packet_size, &packet)) {
+      char hex_buffer[format_hex_pretty_size(protocol::PRESSURE_PACKET_SIZE)];
       ESP_LOGD(TAG, "%s received: %s", this->first_data_received_ ? "Packet" : "First packet",
-               format_hex_pretty(this->rx_buffer_.data(), packet_size).c_str());
+               format_hex_pretty_to(hex_buffer, this->rx_buffer_.data(), packet_size));
       this->first_data_received_ = true;
       this->last_packet_time_ = now;
       this->process_packet_(packet);
